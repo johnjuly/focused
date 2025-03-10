@@ -22,15 +22,16 @@ private:
     std::vector<SoundButton*> soundButtons;
     wxButton* startBtn;
     wxButton* stopBtn;
+
     wxTimer* timer; // 计时器声明
   int remainingSeconds = 0;
   bool isRunning = false;
 
     void InitUI();// 初始化界面
+
     void CreateSoundPanel(wxWindow* parent);// 创建声音面板
     void CreateTimerPanel(wxWindow* parent);// 创建计时面板
-
-    wxStaticText* timeDisplay;// 时间显示控件
+    wxStaticText*timeDisplay;
 
 };
 

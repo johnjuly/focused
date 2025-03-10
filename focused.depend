@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1740894761 source:d:\petto\documents\programs\c++\focused\src\soundbutton.cpp
+1741181984 source:d:\petto\documents\programs\c++\focused\src\soundbutton.cpp
 	"SoundButton.h"
 	"SoundButton.h"
 	<wx/log.h>
@@ -1270,7 +1270,7 @@
 	"wx/longlong.h"
 	"wx/time.h"
 
-1740893955 d:\petto\documents\programs\c++\focused\include\mainframe.h
+1741363890 d:\petto\documents\programs\c++\focused\include\mainframe.h
 	<wx/wx.h>
 	<vector>
 	<wx/timer.h>
@@ -2738,10 +2738,12 @@
 	"wx/compositewin.h"
 	"wx/textctrl.h"
 
-1740893726 source:d:\petto\documents\programs\c++\focused\main.cpp
+1740900865 source:d:\petto\documents\programs\c++\focused\main.cpp
 	"MainFrame.h"
+	<wx/wx.h>
+	<wx/image.h>
 
-1740899373 source:d:\petto\documents\programs\c++\focused\src\mainframe.cpp
+1740899638 source:d:\petto\documents\programs\c++\focused\src\mainframe.cpp
 	"MainFrame.h"
 	"SoundButton.h"
 	<wx/splitter.h>

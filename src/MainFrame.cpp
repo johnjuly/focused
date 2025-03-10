@@ -83,11 +83,14 @@ void MainFrame::CreateTimerPanel(wxWindow* parent){
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
     // 初始化时间显示控件
+
+
     timeDisplay = new wxStaticText(parent, wxID_ANY, "25:00",
                                 wxDefaultPosition, wxDefaultSize,
-                                wxALIGN_CENTER);
-    timeDisplay->SetFont(wxFont(48, wxFONTFAMILY_DEFAULT,
-                              wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+                                wxALIGN_CENTER);// 时间显示控件
+
+    timeDisplay->SetFont({48, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, "Arial"});
+     timeDisplay->SetForegroundColour({30, 144, 255});
 
     // 初始化时间输入控件
     wxSpinCtrl* timeInput = new wxSpinCtrl(parent, wxID_ANY, "25",
@@ -160,10 +163,13 @@ void MainFrame::OnTimerTick(wxTimerEvent&){
         timeDisplay->Refresh();
 
     }else {if (isRunning&& remainingSeconds == 0){
-        wxMessageDialog dialog(nullptr, "休息一下吧(￣︶￣）", "提示", wxOK | wxICON_NONE);
-         dialog.ShowModal();
+
+
+
         timer->Stop();
         timer->Unbind(wxEVT_TIMER, &MainFrame::OnTimerTick, this);
+        wxMessageDialog dialog(nullptr, "休息一下吧(￣︶￣）", "提示", wxOK | wxICON_NONE);
+         dialog.ShowModal();
 
 
         isRunning = false;

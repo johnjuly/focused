@@ -82,7 +82,6 @@
 		<Unit filename="rain.wav" />
 		<Unit filename="src/MainFrame.cpp" />
 		<Unit filename="src/SoundButton.cpp" />
-		<Unit filename="src/TimeManager.cpp" />
 		<Unit filename="waves.wav" />
 		<Unit filename="wind-in-forest.wav" />
 		<Extensions>

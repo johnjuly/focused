@@ -31,6 +31,7 @@ void SoundButton::ToggleSound(){
     GetValue() ? sound.play() : sound.stop();
 }
 
+
 void SoundButton::SetVolume(float volume){
     if(isLoaded) sound.setVolume(volume * 120);
 }
