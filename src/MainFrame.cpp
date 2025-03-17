@@ -23,6 +23,7 @@ MainFrame::MainFrame()
 void MainFrame::InitUI(){
     wxSplitterWindow* splitter = new wxSplitterWindow(this);
 
+
     // ×ó²àÉùÒôÃæ°å
     wxScrolledWindow* soundPanel = new wxScrolledWindow(splitter);
     CreateSoundPanel(soundPanel);
@@ -33,6 +34,9 @@ void MainFrame::InitUI(){
 
     splitter->SplitVertically(soundPanel, timerPanel, 300);
     splitter->SetMinimumPaneSize(200);
+
+
+    this->SetMenuBar(createMenu());
 }
 
 // ´´½¨ÉùÒô°´Å¥Ãæ°å
@@ -178,6 +182,27 @@ void MainFrame::OnTimerTick(wxTimerEvent&){
 
 
 }
+
+wxMenuBar *MainFrame::createMenu()
+{
+    wxMenuBar *menuBar = new wxMenuBar(wxMB_DOCKABLE);
+    menuBar->SetBackgroundColour(wxColor(174, 238, 240));
+
+
+
+    wxMenu *toolsMenu = new wxMenu;
+    menuBar->Append(toolsMenu, wxT("Tools"));
+
+    wxMenu *setMenu = new wxMenu;
+    menuBar->Append(setMenu, wxT("Settings"));
+    wxMenu *adminMenu = new wxMenu;
+    menuBar->Append(adminMenu, wxT("Admin"));
+    wxMenu *helpMenu = new wxMenu;
+    menuBar->Append(helpMenu, wxT("Help"));
+
+    return menuBar;
+}
+
 
 void MainFrame::OnClose(wxCloseEvent& event){
     for(auto btn : soundButtons){

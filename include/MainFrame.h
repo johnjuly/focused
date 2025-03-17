@@ -17,6 +17,8 @@ public:
     MainFrame();
     void OnClose(wxCloseEvent& event);// 窗口关闭事件处理
     void OnTimerTick(wxTimerEvent& event);// 计时器事件处理
+     wxMenuBar *createMenu();
+
 
 private:
     std::vector<SoundButton*> soundButtons;
@@ -31,6 +33,7 @@ private:
 
     void CreateSoundPanel(wxWindow* parent);// 创建声音面板
     void CreateTimerPanel(wxWindow* parent);// 创建计时面板
+
     wxStaticText*timeDisplay;
 
 };
