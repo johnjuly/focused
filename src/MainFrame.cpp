@@ -6,6 +6,9 @@
 #include <wx/splitter.h>
 #include <wx/scrolwin.h>
 #include <wx/spinctrl.h>
+#include <wx/colordlg.h>  // 颜色对话框
+#include <wx/fontdlg.h>   // 字体对话框
+
 
 MainFrame::MainFrame()
     : wxFrame(nullptr, wxID_ANY, "focused",wxDefaultPosition, wxSize(800, 600)),
@@ -182,26 +185,98 @@ void MainFrame::OnTimerTick(wxTimerEvent&){
 
 
 }
+// MainFrame.cpp - 菜单栏现代化
+wxMenuBar* MainFrame::createMenu() {
+    wxMenuBar* menuBar = new wxMenuBar();
+    menuBar->SetBackgroundColour(Style::CARD_BG);
 
-wxMenuBar *MainFrame::createMenu()
-{
-    wxMenuBar *menuBar = new wxMenuBar(wxMB_DOCKABLE);
-    menuBar->SetBackgroundColour(wxColor(174, 238, 240));
+    // 文件菜单
+    wxMenu* fileMenu = new wxMenu;
+    fileMenu->Append(wxID_EXIT, "退出(&Q)");
 
+    // 设置菜单
+    wxMenu* settingMenu = new wxMenu;
+    settingMenu->Append(1001, "背景颜色(&C)\tCtrl+C");
+    settingMenu->Append(1002, "时间字体(&F)\tCtrl+F");
+    settingMenu->AppendSeparator();
+    settingMenu->Append(1003, "恢复默认(&R)");
 
+    // 用户菜单
+    wxMenu* userMenu = new wxMenu;
+    userMenu->Append(2001, "专注统计(&S)");
 
-    wxMenu *toolsMenu = new wxMenu;
-    menuBar->Append(toolsMenu, wxT("Tools"));
+    menuBar->Append(fileMenu, "文件(&F)");
+    menuBar->Append(settingMenu, "设置(&S)");
+    menuBar->Append(userMenu, "用户(&U)");
 
-    wxMenu *setMenu = new wxMenu;
-    menuBar->Append(setMenu, wxT("Settings"));
-    wxMenu *adminMenu = new wxMenu;
-    menuBar->Append(adminMenu, wxT("Admin"));
-    wxMenu *helpMenu = new wxMenu;
-    menuBar->Append(helpMenu, wxT("Help"));
+    // 事件绑定
+    Bind(wxEVT_MENU, [=](wxCommandEvent&) {
+        wxColourDialog dlg(this);
+        if(dlg.ShowModal() == wxID_OK) {
+            ApplyColorToAll(dlg.GetColourData().GetColour());
+        }
+    }, 1001);
+
+    Bind(wxEVT_MENU, [=](wxCommandEvent&) {
+        wxFontDialog dlg(this);
+        if(dlg.ShowModal() == wxID_OK) {
+            ApplyFontToDisplay(dlg.GetFontData().GetChosenFont());
+        }
+    }, 1002);
+
+    Bind(wxEVT_MENU, [=](wxCommandEvent&) {
+        ApplyColorToAll(Style::MAIN_BG);
+        ApplyFontToDisplay(Style::TIME_FONT);
+    }, 1003);
 
     return menuBar;
 }
+void MainFrame::SetColorRecursive(wxWindow* window, wxColour color) {
+    if (!window) return;
+
+    window->SetBackgroundColour(color);
+    window->Refresh();
+
+    wxWindowList children = window->GetChildren();
+    for (wxWindow* child : children) {
+        SetColorRecursive(child, color);  // 递归设置子窗口颜色
+    }
+}
+
+// 实现颜色应用功能
+// MainFrame.cpp
+void MainFrame::ApplyColorToAll(wxColour color) {
+    // 使用 std::function 替代 auto 以支持递归调用
+    std::function<void(wxWindow*)> SetColorRecursive;
+
+    SetColorRecursive = [&](wxWindow* win) {
+        win->SetBackgroundColour(color);
+        win->Refresh();
+
+        // 递归处理子控件
+        wxWindowList& children = win->GetChildren();
+        for (wxWindow* child : children) {
+            SetColorRecursive(child);
+        }
+    };
+
+    // 从主窗口开始应用
+    SetColorRecursive(this);
+
+    // 特殊控件处理
+    if(timeDisplay) {
+        timeDisplay->SetBackgroundColour(color.ChangeLightness(95));
+    }
+    currentBgColor = color;
+}
+
+// 实现字体应用功能
+void MainFrame::ApplyFontToDisplay(wxFont font) {
+    timeDisplay->SetFont(font);
+    currentTimeFont = font;
+    Layout(); // 自动调整布局
+}
+
 
 
 void MainFrame::OnClose(wxCloseEvent& event){

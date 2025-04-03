@@ -1270,11 +1270,14 @@
 	"wx/longlong.h"
 	"wx/time.h"
 
-1742202239 d:\petto\documents\programs\c++\focused\include\mainframe.h
+1743323333 d:\petto\documents\programs\c++\focused\include\mainframe.h
 	<wx/wx.h>
 	<vector>
 	<wx/timer.h>
 	<wx/spinctrl.h>
+	"StyleConfig.h"
+	"BubblePanel.h"
+	"SoundButton.h"
 
 1725363804 c:\wxwidgets\\include\wx\wx.h
 	"wx/defs.h"
@@ -2743,12 +2746,14 @@
 	<wx/wx.h>
 	<wx/image.h>
 
-1742202066 source:d:\petto\documents\programs\c++\focused\src\mainframe.cpp
+1743323933 source:d:\petto\documents\programs\c++\focused\src\mainframe.cpp
 	"MainFrame.h"
 	"SoundButton.h"
 	<wx/splitter.h>
 	<wx/scrolwin.h>
 	<wx/spinctrl.h>
+	<wx/colordlg.h>
+	<wx/fontdlg.h>
 
 1725363804 c:\wxwidgets\\include\wx\splitter.h
 	"wx/event.h"
@@ -2980,4 +2985,86 @@
 1525812018 c:\sfml\sfml-2.5.1\include\sfml\audio\soundfilewriter.hpp
 	<SFML/Audio/Export.hpp>
 	<string>
+
+1743322253 source:d:\petto\documents\programs\c++\focused\src\bubblepanel.cpp
+	"BubblePanel.h"
+	<wx/dcbuffer.h>
+	<wx/graphics.h>
+	<wx/geometry.h>
+
+1743322226 d:\petto\documents\programs\c++\focused\include\bubblepanel.h
+	<wx/wx.h>
+	<vector>
+	<random>
+	<wx/graphics.h>
+	<wx/geometry.h>
+
+1743318410 d:\petto\documents\programs\c++\focused\include\styleconfig.h
+
+1725363804 c:\wxwidgets\\include\wx\colordlg.h
+	"wx/defs.h"
+	"wx/colourdata.h"
+	"wx/msw/colordlg.h"
+	"wx/osx/colordlg.h"
+	"wx/gtk/colordlg.h"
+	"wx/qt/colordlg.h"
+	"wx/generic/colrdlgg.h"
+
+1725363804 c:\wxwidgets\\include\wx\colourdata.h
+	"wx/colour.h"
+
+1725363804 c:\wxwidgets\\include\wx\msw\colordlg.h
+	"wx/dialog.h"
+
+1725363804 c:\wxwidgets\\include\wx\osx\colordlg.h
+	"wx/dialog.h"
+
+1725363804 c:\wxwidgets\\include\wx\gtk\colordlg.h
+	"wx/dialog.h"
+
+1725363804 c:\wxwidgets\\include\wx\qt\colordlg.h
+	"wx/dialog.h"
+
+1725363804 c:\wxwidgets\\include\wx\generic\colrdlgg.h
+	"wx/gdicmn.h"
+	"wx/dialog.h"
+
+1725363804 c:\wxwidgets\\include\wx\fontdlg.h
+	"wx/defs.h"
+	"wx/dialog.h"
+	"wx/fontdata.h"
+	"wx/generic/fontdlgg.h"
+	"wx/msw/fontdlg.h"
+	"wx/gtk/fontdlg.h"
+	"wx/gtk1/fontdlg.h"
+	"wx/osx/fontdlg.h"
+	"wx/qt/fontdlg.h"
+
+1725363804 c:\wxwidgets\\include\wx\fontdata.h
+	"wx/font.h"
+	"wx/colour.h"
+	"wx/encinfo.h"
+
+1725363804 c:\wxwidgets\\include\wx\encinfo.h
+	"wx/string.h"
+
+1725363804 c:\wxwidgets\\include\wx\generic\fontdlgg.h
+	"wx/gdicmn.h"
+	"wx/font.h"
+
+1725363804 c:\wxwidgets\\include\wx\msw\fontdlg.h
+
+1725363804 c:\wxwidgets\\include\wx\gtk\fontdlg.h
+
+1725363804 c:\wxwidgets\\include\wx\gtk1\fontdlg.h
+
+1725363804 c:\wxwidgets\\include\wx\osx\fontdlg.h
+	"wx/dialog.h"
+
+1725363804 c:\wxwidgets\\include\wx\qt\fontdlg.h
+
+1725363804 c:\wxwidgets\\include\wx\dcbuffer.h
+	"wx/dcmemory.h"
+	"wx/dcclient.h"
+	"wx/window.h"
 

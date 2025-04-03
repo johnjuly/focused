@@ -76,10 +76,13 @@
 		</Linker>
 		<Unit filename="cafe.wav" />
 		<Unit filename="icebergs.wav" />
+		<Unit filename="include/BubblePanel.h" />
 		<Unit filename="include/MainFrame.h" />
 		<Unit filename="include/SoundButton.h" />
+		<Unit filename="include/StyleConfig.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="rain.wav" />
+		<Unit filename="src/BubblePanel.cpp" />
 		<Unit filename="src/MainFrame.cpp" />
 		<Unit filename="src/SoundButton.cpp" />
 		<Unit filename="waves.wav" />

@@ -1,41 +1,39 @@
-#ifndef MAINFRAME_H
-#define MAINFRAME_H
-
-
-
+#pragma once
 #include <wx/wx.h>
 #include <vector>
-#include<wx/timer.h>
-#include<wx/spinctrl.h>
-
-
-class SoundButton;
-
+#include <wx/timer.h>
+#include <wx/spinctrl.h>
+#include "StyleConfig.h"
+#include "BubblePanel.h"
+#include "SoundButton.h"
 
 class MainFrame : public wxFrame {
 public:
     MainFrame();
-    void OnClose(wxCloseEvent& event);// ´°¿Ú¹Ø±ÕÊÂ¼ş´¦Àí
-    void OnTimerTick(wxTimerEvent& event);// ¼ÆÊ±Æ÷ÊÂ¼ş´¦Àí
-     wxMenuBar *createMenu();
 
+    // äº‹ä»¶å¤„ç†
+    void OnClose(wxCloseEvent& event);
+    void OnTimerTick(wxTimerEvent& event);
+
+    // UIç›¸å…³
+    wxMenuBar* createMenu();
+    void ApplyColorToAll(wxColour color);
+    void ApplyFontToDisplay(wxFont font);
 
 private:
+    // æˆå‘˜å˜é‡
     std::vector<SoundButton*> soundButtons;
-    wxButton* startBtn;
-    wxButton* stopBtn;
+    wxButton *startBtn, *stopBtn;
+    wxStaticText* timeDisplay;
+    wxTimer* timer;
+    int remainingSeconds = 0;
+    bool isRunning = false;
+    wxColour currentBgColor;
+    wxFont currentTimeFont;
 
-    wxTimer* timer; // ¼ÆÊ±Æ÷ÉùÃ÷
-  int remainingSeconds = 0;
-  bool isRunning = false;
-
-    void InitUI();// ³õÊ¼»¯½çÃæ
-
-    void CreateSoundPanel(wxWindow* parent);// ´´½¨ÉùÒôÃæ°å
-    void CreateTimerPanel(wxWindow* parent);// ´´½¨¼ÆÊ±Ãæ°å
-
-    wxStaticText*timeDisplay;
-
+    // åˆå§‹åŒ–æ–¹æ³•
+    void InitUI();
+    void CreateSoundPanel(wxWindow* parent);
+    void CreateTimerPanel(wxWindow* parent);
+    void SetColorRecursive(wxWindow* window, wxColour color);
 };
-
-#endif // MAINFRAME_H
