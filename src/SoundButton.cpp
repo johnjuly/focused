@@ -1,5 +1,5 @@
-#include "SoundButton.h"
 
+#include <SFML/Audio.hpp>
 #include "SoundButton.h"
 #include <wx/log.h>
 

@@ -1270,14 +1270,14 @@
 	"wx/longlong.h"
 	"wx/time.h"
 
-1743323333 d:\petto\documents\programs\c++\focused\include\mainframe.h
+1744519849 d:\petto\documents\programs\c++\focused\include\mainframe.h
 	<wx/wx.h>
 	<vector>
 	<wx/timer.h>
 	<wx/spinctrl.h>
 	"StyleConfig.h"
-	"BubblePanel.h"
 	"SoundButton.h"
+	"Rainanimation.h"
 
 1725363804 c:\wxwidgets\\include\wx\wx.h
 	"wx/defs.h"
@@ -2746,9 +2746,11 @@
 	<wx/wx.h>
 	<wx/image.h>
 
-1743323933 source:d:\petto\documents\programs\c++\focused\src\mainframe.cpp
+1744519991 source:d:\petto\documents\programs\c++\focused\src\mainframe.cpp
 	"MainFrame.h"
+	<wx/clrpicker.h>
 	"SoundButton.h"
+	<wx/fontpicker.h>
 	<wx/splitter.h>
 	<wx/scrolwin.h>
 	<wx/spinctrl.h>
@@ -2999,7 +3001,11 @@
 	<wx/graphics.h>
 	<wx/geometry.h>
 
-1743318410 d:\petto\documents\programs\c++\focused\include\styleconfig.h
+1744513418 d:\petto\documents\programs\c++\focused\include\styleconfig.h
+	<wx/colour.h>
+	<wx/font.h>
+	<map>
+	<string>
 
 1725363804 c:\wxwidgets\\include\wx\colordlg.h
 	"wx/defs.h"
@@ -3067,4 +3073,50 @@
 	"wx/dcmemory.h"
 	"wx/dcclient.h"
 	"wx/window.h"
+
+1744509239 d:\petto\documents\programs\c++\focused\include\rainanimation.h
+	<wx/wx.h>
+	<vector>
+	<random>
+
+1744509287 source:d:\petto\documents\programs\c++\focused\src\rainanimation.cpp
+	"Rainanimation.h"
+	<wx/dcbuffer.h>
+	"RainAnimation.h"
+
+1725363804 c:\wxwidgets\\include\wx\clrpicker.h
+	"wx/defs.h"
+	"wx/pickerbase.h"
+	"wx/gtk/clrpicker.h"
+	"wx/qt/clrpicker.h"
+	"wx/generic/clrpickerg.h"
+
+1725363804 c:\wxwidgets\\include\wx\pickerbase.h
+	"wx/control.h"
+	"wx/sizer.h"
+	"wx/containr.h"
+
+1725363804 c:\wxwidgets\\include\wx\gtk\clrpicker.h
+	"wx/button.h"
+
+1725363804 c:\wxwidgets\\include\wx\qt\clrpicker.h
+	"wx/generic/clrpickerg.h"
+
+1725363804 c:\wxwidgets\\include\wx\generic\clrpickerg.h
+	"wx/button.h"
+	"wx/bmpbuttn.h"
+	"wx/colourdata.h"
+
+1725363804 c:\wxwidgets\\include\wx\fontpicker.h
+	"wx/defs.h"
+	"wx/pickerbase.h"
+	"wx/gtk/fontpicker.h"
+	"wx/generic/fontpickerg.h"
+
+1725363804 c:\wxwidgets\\include\wx\gtk\fontpicker.h
+	"wx/button.h"
+
+1725363804 c:\wxwidgets\\include\wx\generic\fontpickerg.h
+	"wx/button.h"
+	"wx/fontdata.h"
 

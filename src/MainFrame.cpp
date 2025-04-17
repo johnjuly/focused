@@ -1,8 +1,8 @@
 #include "MainFrame.h"
 
-
+#include <wx/clrpicker.h> // 颜色选择控件头文件
 #include "SoundButton.h"
-
+#include <wx/fontpicker.h>
 #include <wx/splitter.h>
 #include <wx/scrolwin.h>
 #include <wx/spinctrl.h>
@@ -32,11 +32,25 @@ void MainFrame::InitUI(){
     CreateSoundPanel(soundPanel);
 
     // 右侧计时面板
-    wxPanel* timerPanel = new wxPanel(splitter);
-    CreateTimerPanel(timerPanel);
+     rightPanel = new wxWindow(splitter, wxID_ANY); // 使用wxWindow作为容器
+    rightPanel->SetBackgroundColour(ThemeManager::Get().GetCurrentTheme().cardBg); // 设置背景色
 
-    splitter->SplitVertically(soundPanel, timerPanel, 300);
+    // 创建动画层（覆盖整个右侧面板）
+    rainAnim = new RainAnimation(rightPanel);
+    rainAnim->Hide(); // 初始隐藏
+
+    // 创建计时器控件层（位于动画层之上）
+    CreateTimerPanel(rightPanel);
+
+    // 设置分割窗口布局
+    splitter->SplitVertically(soundPanel, rightPanel, 300);
     splitter->SetMinimumPaneSize(200);
+
+    // 绑定右侧面板大小变化事件
+    rightPanel->Bind(wxEVT_SIZE, [=](wxSizeEvent& evt) {
+        rainAnim->SetSize(evt.GetSize()); // 动画层跟随面板大小
+        evt.Skip();
+    });
 
 
     this->SetMenuBar(createMenu());
@@ -74,6 +88,22 @@ void MainFrame::CreateSoundPanel(wxWindow* parent){
             btn->SetBackgroundColour(
                 e.IsChecked() ? wxColour(220, 240, 220) : *wxWHITE
             );
+
+             // 添加雨动画控制
+        if(name == "雨声") {
+            if(e.IsChecked()) {
+                rainAnim->Start();
+                rainAnim->Show();
+            } else {
+                rainAnim->Stop();
+                rainAnim->Hide();
+            }
+        }
+
+
+
+
+
         });
         soundButtons.push_back(btn);
         grid->Add(btn, 1, wxEXPAND);
@@ -88,9 +118,6 @@ void MainFrame::CreateSoundPanel(wxWindow* parent){
 // 创建计时器面板
 void MainFrame::CreateTimerPanel(wxWindow* parent){
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-
-    // 初始化时间显示控件
-
 
     timeDisplay = new wxStaticText(parent, wxID_ANY, "25:00",
                                 wxDefaultPosition, wxDefaultSize,
@@ -185,29 +212,76 @@ void MainFrame::OnTimerTick(wxTimerEvent&){
 
 
 }
-// MainFrame.cpp - 菜单栏现代化
+
 wxMenuBar* MainFrame::createMenu() {
     wxMenuBar* menuBar = new wxMenuBar();
-    menuBar->SetBackgroundColour(Style::CARD_BG);
+    menuBar->SetBackgroundColour(ThemeManager::Get().GetCurrentTheme().cardBg);
 
     // 文件菜单
     wxMenu* fileMenu = new wxMenu;
     fileMenu->Append(wxID_EXIT, "退出(&Q)");
 
-    // 设置菜单
-    wxMenu* settingMenu = new wxMenu;
-    settingMenu->Append(1001, "背景颜色(&C)\tCtrl+C");
-    settingMenu->Append(1002, "时间字体(&F)\tCtrl+F");
-    settingMenu->AppendSeparator();
-    settingMenu->Append(1003, "恢复默认(&R)");
+
 
     // 用户菜单
     wxMenu* userMenu = new wxMenu;
     userMenu->Append(2001, "专注统计(&S)");
 
     menuBar->Append(fileMenu, "文件(&F)");
-    menuBar->Append(settingMenu, "设置(&S)");
+
     menuBar->Append(userMenu, "用户(&U)");
+
+
+    wxMenu* themeMenu = new wxMenu;
+themeMenu->Append(ID_THEME_LIGHT, "亮色主题");
+themeMenu->Append(ID_THEME_DARK, "暗色主题");
+themeMenu->AppendSeparator();
+themeMenu->Append(ID_THEME_CUSTOM, "自定义主题...");
+ menuBar->Append(themeMenu, "主题(&T)");
+
+// 绑定菜单事件
+Bind(wxEVT_MENU, [=](wxCommandEvent&) {
+    ThemeConfig darkTheme;
+    darkTheme.mainBg = wxColour(30, 30, 30);
+    darkTheme.cardBg = wxColour(60, 60, 60);
+    darkTheme.textPrimary = wxColour(220, 220, 220);
+    ThemeManager::Get().SetTheme(darkTheme);
+}, ID_THEME_DARK);
+
+Bind(wxEVT_MENU, [=](wxCommandEvent&) {
+    ThemeConfig lightTheme; // 使用默认亮色配置
+    ThemeManager::Get().SetTheme(lightTheme);
+}, ID_THEME_LIGHT);
+
+Bind(wxEVT_MENU, [=](wxCommandEvent&) {
+    wxDialog dlg(this, wxID_ANY, "自定义主题");
+    wxPanel* panel = new wxPanel(&dlg);
+
+    // 颜色选择控件
+    wxColourPickerCtrl* bgPicker = new wxColourPickerCtrl(panel, wxID_ANY,
+        ThemeManager::Get().GetCurrentTheme().mainBg);
+    wxColourPickerCtrl* textPicker = new wxColourPickerCtrl(panel, wxID_ANY,
+        ThemeManager::Get().GetCurrentTheme().textPrimary);
+
+    // 布局
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(new wxStaticText(panel, wxID_ANY, "背景颜色:"), 0, wxALL, 5);
+    sizer->Add(bgPicker, 0, wxEXPAND | wxALL, 5);
+    sizer->Add(new wxStaticText(panel, wxID_ANY, "文本颜色:"), 0, wxALL, 5);
+    sizer->Add(textPicker, 0, wxEXPAND | wxALL, 5);
+
+    // 确认按钮
+    wxButton* btnOK = new wxButton(panel, wxID_OK, "确定");
+    sizer->Add(btnOK, 0, wxALIGN_CENTER | wxALL, 10);
+
+    panel->SetSizer(sizer);
+    if (dlg.ShowModal() == wxID_OK) {
+        ThemeConfig customTheme;
+        customTheme.mainBg = bgPicker->GetColour();
+        customTheme.textPrimary = textPicker->GetColour();
+        ThemeManager::Get().SetTheme(customTheme);
+    }
+}, ID_THEME_CUSTOM);
 
     // 事件绑定
     Bind(wxEVT_MENU, [=](wxCommandEvent&) {
@@ -225,11 +299,14 @@ wxMenuBar* MainFrame::createMenu() {
     }, 1002);
 
     Bind(wxEVT_MENU, [=](wxCommandEvent&) {
-        ApplyColorToAll(Style::MAIN_BG);
-        ApplyFontToDisplay(Style::TIME_FONT);
+        ApplyColorToAll(ThemeManager::Get().GetCurrentTheme().cardBg);
+        ApplyFontToDisplay(ThemeManager::Get().GetCurrentTheme().timeFont);
     }, 1003);
 
+
     return menuBar;
+
+
 }
 void MainFrame::SetColorRecursive(wxWindow* window, wxColour color) {
     if (!window) return;
@@ -246,7 +323,7 @@ void MainFrame::SetColorRecursive(wxWindow* window, wxColour color) {
 // 实现颜色应用功能
 // MainFrame.cpp
 void MainFrame::ApplyColorToAll(wxColour color) {
-    // 使用 std::function 替代 auto 以支持递归调用
+
     std::function<void(wxWindow*)> SetColorRecursive;
 
     SetColorRecursive = [&](wxWindow* win) {
@@ -278,7 +355,79 @@ void MainFrame::ApplyFontToDisplay(wxFont font) {
 }
 
 
+void MainFrame::ApplyThemeToWindow(wxWindow* window, const ThemeConfig& theme) {
+    if (!window) return;
 
+    // 设置背景色和文本色（根据控件类型调整）
+    if (auto btn = dynamic_cast<wxButton*>(window)) {
+        btn->SetBackgroundColour(theme.cardBg);
+        btn->SetForegroundColour(theme.textPrimary);
+    } else if (auto st = dynamic_cast<wxStaticText*>(window)) {
+        st->SetBackgroundColour(theme.mainBg);
+        st->SetForegroundColour(theme.textPrimary);
+    } else {
+        window->SetBackgroundColour(theme.mainBg);
+    }
+
+    // 特殊字体处理
+    if (window == timeDisplay) {
+        window->SetFont(theme.timeFont);
+    }
+
+    // 递归处理子控件
+    wxWindowList& children = window->GetChildren();
+    for (wxWindow* child : children) {
+        ApplyThemeToWindow(child, theme);
+    }
+}
+
+// MainFrame.cpp（自定义主题对话框）
+void MainFrame::OnCustomTheme(wxCommandEvent&) {
+    wxDialog dlg(this, wxID_ANY, "自定义主题");
+    wxPanel* panel = new wxPanel(&dlg);
+
+    // 颜色选择控件
+    wxColourPickerCtrl* bgColorPicker = new wxColourPickerCtrl(panel, wxID_ANY,
+        ThemeManager::Get().GetCurrentTheme().mainBg);
+    wxColourPickerCtrl* textColorPicker = new wxColourPickerCtrl(panel, wxID_ANY,
+        ThemeManager::Get().GetCurrentTheme().textPrimary);
+
+    // 字体选择控件
+    wxFontPickerCtrl* titleFontPicker = new wxFontPickerCtrl(panel, wxID_ANY,
+        ThemeManager::Get().GetCurrentTheme().titleFont);
+    wxFontPickerCtrl* timeFontPicker = new wxFontPickerCtrl(panel, wxID_ANY,
+        ThemeManager::Get().GetCurrentTheme().timeFont);
+
+    // 布局
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(new wxStaticText(panel, wxID_ANY, "背景颜色:"), 0, wxALL, 5);
+    sizer->Add(bgColorPicker, 0, wxEXPAND | wxALL, 5);
+    sizer->Add(new wxStaticText(panel, wxID_ANY, "文本颜色:"), 0, wxALL, 5);
+    sizer->Add(textColorPicker, 0, wxEXPAND | wxALL, 5);
+    sizer->Add(new wxStaticText(panel, wxID_ANY, "标题字体:"), 0, wxALL, 5);
+    sizer->Add(titleFontPicker, 0, wxEXPAND | wxALL, 5);
+    sizer->Add(new wxStaticText(panel, wxID_ANY, "时间字体:"), 0, wxALL, 5);
+    sizer->Add(timeFontPicker, 0, wxEXPAND | wxALL, 5);
+
+    wxButton* btnOK = new wxButton(panel, wxID_OK, "确定");
+    sizer->Add(btnOK, 0, wxALIGN_CENTER | wxALL, 10);
+
+    panel->SetSizer(sizer);
+    if (dlg.ShowModal() == wxID_OK) {
+        ThemeConfig customTheme;
+        customTheme.mainBg = bgColorPicker->GetColour();
+        customTheme.textPrimary = textColorPicker->GetColour();
+        customTheme.titleFont = titleFontPicker->GetSelectedFont();
+        customTheme.timeFont = timeFontPicker->GetSelectedFont();
+        ThemeManager::Get().SetTheme(customTheme);
+    }
+}
+// 主题变更事件处理
+void MainFrame::OnThemeChanged() {
+    const auto& theme = ThemeManager::Get().GetCurrentTheme();
+    ApplyThemeToWindow(this, theme);
+    Refresh(); // 强制重绘界面
+}
 void MainFrame::OnClose(wxCloseEvent& event){
     for(auto btn : soundButtons){
         if(btn->GetValue()) btn->ToggleSound();
