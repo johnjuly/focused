@@ -1,6 +1,6 @@
 # depslib dependency file v1.0
-1741181984 source:d:\petto\documents\programs\c++\focused\src\soundbutton.cpp
-	"SoundButton.h"
+1744879162 source:d:\petto\documents\programs\c++\focused\src\soundbutton.cpp
+	<SFML/Audio.hpp>
 	"SoundButton.h"
 	<wx/log.h>
 
@@ -1270,7 +1270,7 @@
 	"wx/longlong.h"
 	"wx/time.h"
 
-1744519849 d:\petto\documents\programs\c++\focused\include\mainframe.h
+1744954692 d:\petto\documents\programs\c++\focused\include\mainframe.h
 	<wx/wx.h>
 	<vector>
 	<wx/timer.h>
@@ -2746,7 +2746,7 @@
 	<wx/wx.h>
 	<wx/image.h>
 
-1744519991 source:d:\petto\documents\programs\c++\focused\src\mainframe.cpp
+1744954484 source:d:\petto\documents\programs\c++\focused\src\mainframe.cpp
 	"MainFrame.h"
 	<wx/clrpicker.h>
 	"SoundButton.h"
@@ -3079,7 +3079,7 @@
 	<vector>
 	<random>
 
-1744509287 source:d:\petto\documents\programs\c++\focused\src\rainanimation.cpp
+1744954348 source:d:\petto\documents\programs\c++\focused\src\rainanimation.cpp
 	"Rainanimation.h"
 	<wx/dcbuffer.h>
 	"RainAnimation.h"

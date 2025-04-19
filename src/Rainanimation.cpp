@@ -56,11 +56,14 @@ void RainAnimation::OnPaint(wxPaintEvent&) {
 
     if(!m_isActive) return;
 
-    wxPen pen(wxColour(100, 181, 246), 3); // 蓝色粗线条
+     wxSize areaSize = GetClientSize();
+
+
+    wxPen pen(wxColour(100, 181, 246), 2); // 蓝色粗线条
     dc.SetPen(pen);
 
     for(const auto& drop : m_drops) {
-        dc.DrawLine(drop.x, drop.y, drop.x, drop.y + 20);
+        dc.DrawLine(drop.x, drop.y, drop.x, drop.y + 15);
     }
 }
 

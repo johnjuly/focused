@@ -19,7 +19,7 @@ public:
     // 事件处理
     void OnClose(wxCloseEvent& event);
     void OnTimerTick(wxTimerEvent& event);
-      void ApplyThemeToWindow(wxWindow* window, const ThemeConfig& theme);
+    void ApplyThemeToWindow(wxWindow* window, const ThemeConfig& theme);
     void OnThemeChanged();
     // UI相关
     wxMenuBar* createMenu();
@@ -40,9 +40,12 @@ private:
     wxFont currentTimeFont;
     RainAnimation* rainAnim = nullptr;
     wxWindow* rightPanel; // 右侧面板
+    wxPanel* animPanel;
+
     // 初始化方法
     void InitUI();
     void CreateSoundPanel(wxWindow* parent);
     void CreateTimerPanel(wxWindow* parent);
     void SetColorRecursive(wxWindow* window, wxColour color);
+    void OnShowStatistics(wxCommandEvent& event);
 };

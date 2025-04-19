@@ -32,7 +32,7 @@ void MainFrame::InitUI(){
     CreateSoundPanel(soundPanel);
 
     // 右侧计时面板
-     rightPanel = new wxWindow(splitter, wxID_ANY); // 使用wxWindow作为容器
+    /* rightPanel = new  // 使用wxWindow作为容器
     rightPanel->SetBackgroundColour(ThemeManager::Get().GetCurrentTheme().cardBg); // 设置背景色
 
     // 创建动画层（覆盖整个右侧面板）
@@ -40,16 +40,58 @@ void MainFrame::InitUI(){
     rainAnim->Hide(); // 初始隐藏
 
     // 创建计时器控件层（位于动画层之上）
-    CreateTimerPanel(rightPanel);
+    CreateTimerPanel(rightPanel);*/
 
-    // 设置分割窗口布局
+    rightPanel = new wxPanel(splitter); // 改用wxPanel作为容器
+wxBoxSizer* rightSizer = new wxBoxSizer(wxVERTICAL);
+rightPanel->SetSizer(rightSizer);
+
+// 创建计时器面板（独立面板）
+wxPanel* timerPanel = new wxPanel(rightPanel);
+CreateTimerPanel(timerPanel);
+
+// 创建动画面板（下方区域）
+ animPanel = new wxPanel(rightPanel);
+animPanel->SetMinSize(wxSize(-1, 200));
+ // 设置最小高度
+  animPanel->SetSize(wxSize(-1, 200));
+
+rainAnim = new RainAnimation(animPanel); // 父级改为animPanel
+rainAnim->Hide();
+
+    /*// 设置分割窗口布局
     splitter->SplitVertically(soundPanel, rightPanel, 300);
     splitter->SetMinimumPaneSize(200);
 
     // 绑定右侧面板大小变化事件
     rightPanel->Bind(wxEVT_SIZE, [=](wxSizeEvent& evt) {
         rainAnim->SetSize(evt.GetSize()); // 动画层跟随面板大小
-        evt.Skip();
+        evt.Skip();*/
+
+
+// 布局设置
+rightSizer->Add(timerPanel, 1, wxEXPAND); // 计时器面板占1份
+rightSizer->Add(animPanel, 0, wxEXPAND);  // 动画区域固定高度
+
+
+
+    // 关键：设置分割器布局
+    splitter->SplitVertically(soundPanel, rightPanel, 300);
+    splitter->SetMinimumPaneSize(200);
+
+
+
+     // 必须调用此函数显示分割器
+    splitter->SetSizer(new wxBoxSizer(wxHORIZONTAL));
+    splitter->Show(true);
+
+
+// 修改尺寸事件绑定
+ animPanel->Bind(wxEVT_SIZE, [=](wxSizeEvent& evt) {
+        rainAnim->SetSize(evt.GetSize());
+
+    evt.Skip();
+
     });
 
 
@@ -117,7 +159,10 @@ void MainFrame::CreateSoundPanel(wxWindow* parent){
 
 // 创建计时器面板
 void MainFrame::CreateTimerPanel(wxWindow* parent){
-    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+
+     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+
+
 
     timeDisplay = new wxStaticText(parent, wxID_ANY, "25:00",
                                 wxDefaultPosition, wxDefaultSize,
@@ -174,10 +219,20 @@ void MainFrame::CreateTimerPanel(wxWindow* parent){
 
 
     //布局控件
-     sizer->Add(timeDisplay, 1, wxEXPAND|wxALL, 20);
+
+
+    /* sizer->Add(timeDisplay, 1, wxEXPAND|wxALL, 20);
     sizer->Add(timeInput, 0, wxEXPAND|wxALL, 10);
     sizer->Add(startBtn, 0, wxEXPAND|wxALL, 5);
     sizer->Add(stopBtn, 0, wxEXPAND|wxALL, 5);
+    parent->SetSizer(sizer);*/
+     sizer->AddStretchSpacer();
+    sizer->Add(timeDisplay, 0, wxALIGN_CENTER|wxBOTTOM, 20);
+    sizer->Add(timeInput, 0, wxALIGN_CENTER|wxBOTTOM, 10);
+    sizer->Add(startBtn, 0, wxALIGN_CENTER|wxBOTTOM, 5);
+    sizer->Add(stopBtn, 0, wxALIGN_CENTER);
+    sizer->AddStretchSpacer();
+
     parent->SetSizer(sizer);
 }
 
@@ -246,11 +301,12 @@ Bind(wxEVT_MENU, [=](wxCommandEvent&) {
     darkTheme.cardBg = wxColour(60, 60, 60);
     darkTheme.textPrimary = wxColour(220, 220, 220);
     ThemeManager::Get().SetTheme(darkTheme);
+    OnThemeChanged();
 }, ID_THEME_DARK);
 
 Bind(wxEVT_MENU, [=](wxCommandEvent&) {
     ThemeConfig lightTheme; // 使用默认亮色配置
-    ThemeManager::Get().SetTheme(lightTheme);
+    ThemeManager::Get().SetTheme(lightTheme); OnThemeChanged();
 }, ID_THEME_LIGHT);
 
 Bind(wxEVT_MENU, [=](wxCommandEvent&) {
@@ -280,6 +336,7 @@ Bind(wxEVT_MENU, [=](wxCommandEvent&) {
         customTheme.mainBg = bgPicker->GetColour();
         customTheme.textPrimary = textPicker->GetColour();
         ThemeManager::Get().SetTheme(customTheme);
+         OnThemeChanged();
     }
 }, ID_THEME_CUSTOM);
 
@@ -303,6 +360,11 @@ Bind(wxEVT_MENU, [=](wxCommandEvent&) {
         ApplyFontToDisplay(ThemeManager::Get().GetCurrentTheme().timeFont);
     }, 1003);
 
+    Bind(wxEVT_MENU, &MainFrame::OnShowStatistics, this, 2001);
+
+    Bind(wxEVT_MENU, [=](wxCommandEvent&) {
+    Close(true); // 关闭主窗口
+}, wxID_EXIT);
 
     return menuBar;
 
@@ -369,9 +431,19 @@ void MainFrame::ApplyThemeToWindow(wxWindow* window, const ThemeConfig& theme) {
         window->SetBackgroundColour(theme.mainBg);
     }
 
+     // 特殊处理动画面板背景 todo
+
+
+
+if (window == animPanel) { // 现在可以正确访问成员变量
+        window->SetBackgroundColour(theme.mainBg.ChangeLightness(95));
+    }
+
     // 特殊字体处理
     if (window == timeDisplay) {
         window->SetFont(theme.timeFont);
+
+        timeDisplay->SetForegroundColour(theme.textPrimary);
     }
 
     // 递归处理子控件
@@ -420,6 +492,7 @@ void MainFrame::OnCustomTheme(wxCommandEvent&) {
         customTheme.titleFont = titleFontPicker->GetSelectedFont();
         customTheme.timeFont = timeFontPicker->GetSelectedFont();
         ThemeManager::Get().SetTheme(customTheme);
+         OnThemeChanged();
     }
 }
 // 主题变更事件处理
@@ -427,10 +500,34 @@ void MainFrame::OnThemeChanged() {
     const auto& theme = ThemeManager::Get().GetCurrentTheme();
     ApplyThemeToWindow(this, theme);
     Refresh(); // 强制重绘界面
+
+     // 特殊控件更新
+    if(timeDisplay) {
+        timeDisplay->SetForegroundColour(theme.textPrimary);
+        timeDisplay->SetBackgroundColour(theme.mainBg);
+    }
+    rightPanel->SetBackgroundColour(theme.cardBg);
+
+    Refresh();
+    Update();
+    Layout();
+
 }
+
+void MainFrame::OnShowStatistics(wxCommandEvent& event) {
+    wxString stats = wxString::Format(
+        "本周专注时长：%.1f小时\n本月累计：%.1f小时",
+        12.5,  // 示例数据，可替换为实际统计逻辑
+        48.3
+    );
+    wxMessageBox(stats, "专注统计", wxOK | wxICON_INFORMATION);
+}
+
+
 void MainFrame::OnClose(wxCloseEvent& event){
     for(auto btn : soundButtons){
         if(btn->GetValue()) btn->ToggleSound();
     }
     event.Skip();
 }
+
