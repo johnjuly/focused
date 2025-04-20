@@ -1,17 +1,19 @@
 #ifndef RAINANIMATION_H
 #define RAINANIMATION_H
-
 #include <wx/wx.h>
+#include <wx/timer.h>
 #include <vector>
 #include <random>
-class RainAnimation : public  wxWindow {
+#include "AnimationBase.h"
+class RainAnimation : public AnimationBase  {
 public:
     RainAnimation(wxWindow* parent);
-    void Start();
-    void Stop();
-    void UpdateDrops();
+    void Start()override;
+    void Stop()override;
+
 
 private:
+    void UpdateDrops();
     void OnPaint(wxPaintEvent& evt);
     void OnTimer(wxTimerEvent& evt);
 

@@ -16,6 +16,27 @@ struct ThemeConfig {
     wxFont titleFont;       // 标题字体
     wxFont timeFont;        // 时间显示字体
 
+     wxColour polar_night[4] = {
+        wxColour(46, 52, 64),   // nord0
+        wxColour(59, 66, 82),   // nord1
+        wxColour(67, 76, 94),   // nord2
+        wxColour(76, 86, 106)   // nord3
+    };
+
+     wxColour snow_storm[3] = {
+        wxColour(216, 222, 233), // nord4
+        wxColour(229, 233, 240), // nord5
+        wxColour(236, 239, 244)  // nord6
+    };
+
+     wxColour frost[4] = {
+        wxColour(143, 188, 187), // nord7
+        wxColour(136, 192, 208), // nord8
+        wxColour(129, 161, 193), // nord9
+        wxColour(94, 129, 172)   // nord10
+    };
+
+
     // 默认构造函数（亮色主题）
     ThemeConfig() :
         mainBg(245, 247, 250),

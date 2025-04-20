@@ -3120,3 +3120,83 @@
 	"wx/button.h"
 	"wx/fontdata.h"
 
+1745154456 source:c:\users\petto\desktop\focused\main.cpp
+	"MainFrame.h"
+	<wx/wx.h>
+	<wx/image.h>
+
+1745160302 c:\users\petto\desktop\focused\include\mainframe.h
+	<wx/wx.h>
+	<vector>
+	<wx/timer.h>
+	<wx/spinctrl.h>
+	"StyleConfig.h"
+	"SoundButton.h"
+	"AnimationBase.h"
+	<unordered_map>
+
+1745155437 c:\users\petto\desktop\focused\include\styleconfig.h
+	<wx/colour.h>
+	<wx/font.h>
+	<map>
+	<string>
+
+1745154456 c:\users\petto\desktop\focused\include\soundbutton.h
+	<wx/tglbtn.h>
+	<SFML/Audio.hpp>
+	<string>
+
+1745162460 c:\users\petto\desktop\focused\include\rainanimation.h
+	<wx/wx.h>
+	<wx/timer.h>
+	<vector>
+	<random>
+	"AnimationBase.h"
+
+1745161924 source:c:\users\petto\desktop\focused\src\mainframe.cpp
+	"MainFrame.h"
+	"RainAnimation.h"
+	"GlacierAnimation.h"
+	"FireAnimation.h"
+	<wx/clrpicker.h>
+	"SoundButton.h"
+	<wx/fontpicker.h>
+	<wx/splitter.h>
+	<wx/scrolwin.h>
+	<wx/spinctrl.h>
+	<wx/colordlg.h>
+	<wx/fontdlg.h>
+
+1745164499 source:c:\users\petto\desktop\focused\src\rainanimation.cpp
+	"Rainanimation.h"
+	<wx/dcbuffer.h>
+	"RainAnimation.h"
+
+1745154457 source:c:\users\petto\desktop\focused\src\soundbutton.cpp
+	<SFML/Audio.hpp>
+	"SoundButton.h"
+	<wx/log.h>
+
+1745162462 c:\users\petto\desktop\focused\include\animationbase.h
+	<wx/wx.h>
+
+1745159595 source:c:\users\petto\desktop\focused\src\glacieranimation.cpp
+	"GlacierAnimation.h"
+	<wx/dcbuffer.h>
+
+1745162462 c:\users\petto\desktop\focused\include\glacieranimation.h
+	<random>
+	"AnimationBase.h"
+
+1745161661 source:c:\users\petto\desktop\focused\src\fireanimation.cpp
+	"FireAnimation.h"
+	<wx/dcbuffer.h>
+	<random>
+
+1745162462 c:\users\petto\desktop\focused\include\fireanimation.h
+	<vector>
+	"AnimationBase.h"
+	<wx/wx.h>
+	<wx/timer.h>
+	<random>
+

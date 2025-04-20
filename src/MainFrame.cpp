@@ -1,4 +1,7 @@
 #include "MainFrame.h"
+#include "RainAnimation.h"
+#include "GlacierAnimation.h"
+#include "FireAnimation.h"
 
 #include <wx/clrpicker.h> // 颜色选择控件头文件
 #include "SoundButton.h"
@@ -31,40 +34,23 @@ void MainFrame::InitUI(){
     wxScrolledWindow* soundPanel = new wxScrolledWindow(splitter);
     CreateSoundPanel(soundPanel);
 
-    // 右侧计时面板
-    /* rightPanel = new  // 使用wxWindow作为容器
-    rightPanel->SetBackgroundColour(ThemeManager::Get().GetCurrentTheme().cardBg); // 设置背景色
-
-    // 创建动画层（覆盖整个右侧面板）
-    rainAnim = new RainAnimation(rightPanel);
-    rainAnim->Hide(); // 初始隐藏
-
-    // 创建计时器控件层（位于动画层之上）
-    CreateTimerPanel(rightPanel);*/
 
     rightPanel = new wxPanel(splitter); // 改用wxPanel作为容器
-wxBoxSizer* rightSizer = new wxBoxSizer(wxVERTICAL);
-rightPanel->SetSizer(rightSizer);
+
+     CreateAnimationPanel();
+    wxBoxSizer* rightSizer = new wxBoxSizer(wxVERTICAL);
+    rightPanel->SetSizer(rightSizer);
 
 // 创建计时器面板（独立面板）
 wxPanel* timerPanel = new wxPanel(rightPanel);
 CreateTimerPanel(timerPanel);
 
-// 创建动画面板（下方区域）
- animPanel = new wxPanel(rightPanel);
-animPanel->SetMinSize(wxSize(-1, 200));
- // 设置最小高度
-  animPanel->SetSize(wxSize(-1, 200));
-
-rainAnim = new RainAnimation(animPanel); // 父级改为animPanel
-rainAnim->Hide();
-
-    /*// 设置分割窗口布局
+    // 设置分割窗口布局
     splitter->SplitVertically(soundPanel, rightPanel, 300);
     splitter->SetMinimumPaneSize(200);
 
     // 绑定右侧面板大小变化事件
-    rightPanel->Bind(wxEVT_SIZE, [=](wxSizeEvent& evt) {
+    /*rightPanel->Bind(wxEVT_SIZE, [=](wxSizeEvent& evt) {
         rainAnim->SetSize(evt.GetSize()); // 动画层跟随面板大小
         evt.Skip();*/
 
@@ -87,6 +73,7 @@ rightSizer->Add(animPanel, 0, wxEXPAND);  // 动画区域固定高度
 
 
 // 修改尺寸事件绑定
+/*
  animPanel->Bind(wxEVT_SIZE, [=](wxSizeEvent& evt) {
         rainAnim->SetSize(evt.GetSize());
 
@@ -94,7 +81,7 @@ rightSizer->Add(animPanel, 0, wxEXPAND);  // 动画区域固定高度
 
     });
 
-
+*/
     this->SetMenuBar(createMenu());
 }
 
@@ -127,22 +114,28 @@ void MainFrame::CreateSoundPanel(wxWindow* parent){
         btn->SetMinSize(wxSize(140, 80));
         btn->Bind(wxEVT_TOGGLEBUTTON, [=](wxCommandEvent& e){
             btn->ToggleSound();// 切换播放/停止
-            btn->SetBackgroundColour(
+           /* btn->SetBackgroundColour(
                 e.IsChecked() ? wxColour(220, 240, 220) : *wxWHITE
             );
-
+                */
              // 添加雨动画控制
-        if(name == "雨声") {
-            if(e.IsChecked()) {
-                rainAnim->Start();
-                rainAnim->Show();
-            } else {
-                rainAnim->Stop();
-                rainAnim->Hide();
-            }
+
+        if(e.IsChecked()) {
+        std::string animType = "";
+        if(name == "雨声") animType = "rain";
+        else if(name == "冰川") animType = "glacier";
+        else if(name == "木火") animType = "fire";
+        else if(name == "风声") animType = "wind";
+
+        if(!animType.empty()) {
+            SwitchAnimation(animType);
         }
-
-
+    } else {
+        if(currentAnim) {
+            currentAnim->Stop();
+            currentAnim->Hide();
+        }
+    }
 
 
 
@@ -237,7 +230,22 @@ void MainFrame::CreateTimerPanel(wxWindow* parent){
 }
 
 
+void MainFrame::CreateAnimationPanel() {
+    animPanel = new wxPanel(rightPanel);
+    animPanel->SetMinSize(wxSize(-1, 200));
 
+    // 初始化所有动画
+    animMap["rain"] = new RainAnimation(animPanel);
+    animMap["glacier"] = new GlacierAnimation(animPanel);
+    animMap["fire"] = new FireAnimation(animPanel);
+    /*animMap["wind"] = new WindAnimation(animPanel);*/
+
+    // 初始隐藏所有动画
+    for(auto& [key, anim] : animMap) {
+        anim->Hide();
+    }
+
+}
 // 计时器事件处理：每秒更新剩余时间
 void MainFrame::OnTimerTick(wxTimerEvent&){
     if(remainingSeconds > 0){
@@ -288,26 +296,23 @@ wxMenuBar* MainFrame::createMenu() {
 
 
     wxMenu* themeMenu = new wxMenu;
-themeMenu->Append(ID_THEME_LIGHT, "亮色主题");
-themeMenu->Append(ID_THEME_DARK, "暗色主题");
+
+
+    themeMenu->Append(ID_THEME_LIGHT, "Nord Light");
+themeMenu->Append(ID_THEME_DARK, "Nord Dark");
+
 themeMenu->AppendSeparator();
 themeMenu->Append(ID_THEME_CUSTOM, "自定义主题...");
  menuBar->Append(themeMenu, "主题(&T)");
 
 // 绑定菜单事件
 Bind(wxEVT_MENU, [=](wxCommandEvent&) {
-    ThemeConfig darkTheme;
-    darkTheme.mainBg = wxColour(30, 30, 30);
-    darkTheme.cardBg = wxColour(60, 60, 60);
-    darkTheme.textPrimary = wxColour(220, 220, 220);
-    ThemeManager::Get().SetTheme(darkTheme);
-    OnThemeChanged();
-}, ID_THEME_DARK);
+    ApplyNordLightTheme();
+}, ID_THEME_LIGHT);
 
 Bind(wxEVT_MENU, [=](wxCommandEvent&) {
-    ThemeConfig lightTheme; // 使用默认亮色配置
-    ThemeManager::Get().SetTheme(lightTheme); OnThemeChanged();
-}, ID_THEME_LIGHT);
+    ApplyNordDarkTheme();
+}, ID_THEME_DARK);
 
 Bind(wxEVT_MENU, [=](wxCommandEvent&) {
     wxDialog dlg(this, wxID_ANY, "自定义主题");
@@ -420,32 +425,24 @@ void MainFrame::ApplyFontToDisplay(wxFont font) {
 void MainFrame::ApplyThemeToWindow(wxWindow* window, const ThemeConfig& theme) {
     if (!window) return;
 
-    // 设置背景色和文本色（根据控件类型调整）
-    if (auto btn = dynamic_cast<wxButton*>(window)) {
-        btn->SetBackgroundColour(theme.cardBg);
-        btn->SetForegroundColour(theme.textPrimary);
-    } else if (auto st = dynamic_cast<wxStaticText*>(window)) {
-        st->SetBackgroundColour(theme.mainBg);
-        st->SetForegroundColour(theme.textPrimary);
+
+     if(window == this) {
+        window->SetBackgroundColour(theme.mainBg.ChangeLightness(105));
     } else {
-        window->SetBackgroundColour(theme.mainBg);
+        window->SetBackgroundColour(theme.cardBg);
     }
 
-     // 特殊处理动画面板背景 todo
+    window->SetForegroundColour(theme.textPrimary);
 
-
-
-if (window == animPanel) { // 现在可以正确访问成员变量
-        window->SetBackgroundColour(theme.mainBg.ChangeLightness(95));
+    // 特殊控件处理
+    if(auto btn = dynamic_cast<wxButton*>(window)){
+        btn->SetBackgroundColour(theme.frost[0]); // nord7
+        btn->SetForegroundColour(theme.polar_night[0]);
     }
 
-    // 特殊字体处理
-    if (window == timeDisplay) {
-        window->SetFont(theme.timeFont);
-
-        timeDisplay->SetForegroundColour(theme.textPrimary);
+    if(auto st = dynamic_cast<wxStaticText*>(window)) {
+        st->SetForegroundColour(theme.frost[3]); // nord10
     }
-
     // 递归处理子控件
     wxWindowList& children = window->GetChildren();
     for (wxWindow* child : children) {
@@ -523,6 +520,52 @@ void MainFrame::OnShowStatistics(wxCommandEvent& event) {
     wxMessageBox(stats, "专注统计", wxOK | wxICON_INFORMATION);
 }
 
+void MainFrame::ApplyNordLightTheme() {
+    ThemeConfig theme;
+    // 北极光配色
+    theme.mainBg = theme.snow_storm[2];   // nord6
+    theme.cardBg = theme.snow_storm[1];   // nord5
+    theme.textPrimary = theme.polar_night[0]; // nord0
+    theme.timeFont = wxFont(24, wxFONTFAMILY_SWISS,
+                          wxFONTSTYLE_NORMAL,
+                          wxFONTWEIGHT_BOLD);
+
+    ThemeManager::Get().SetTheme(theme);
+    OnThemeChanged();
+}
+
+void MainFrame::ApplyNordDarkTheme() {
+    ThemeConfig theme;
+    // 极夜配色
+    theme.mainBg = theme.polar_night[0];  // nord0
+    theme.cardBg = theme.polar_night[1];  // nord1
+    theme.textPrimary = theme.snow_storm[0]; // nord4
+    theme.timeFont = wxFont(36, wxFONTFAMILY_SWISS,
+                          wxFONTSTYLE_ITALIC,
+                          wxFONTWEIGHT_BOLD);
+
+    ThemeManager::Get().SetTheme(theme);
+    OnThemeChanged();
+}
+
+
+
+void MainFrame::SwitchAnimation(const std::string& animType) {
+    // 停止当前动画
+    if(currentAnim) {
+        currentAnim->Stop();
+        currentAnim->Hide();
+    }
+
+    // 启动新动画
+    if(animMap.find(animType) != animMap.end()) {
+        currentAnim = animMap[animType];
+        currentAnim->SetSize(animPanel->GetClientSize());
+        currentAnim->Show();
+        currentAnim->Start();
+        animPanel->Layout();
+    }
+}
 
 void MainFrame::OnClose(wxCloseEvent& event){
     for(auto btn : soundButtons){

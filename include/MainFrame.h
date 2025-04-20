@@ -5,7 +5,8 @@
 #include <wx/spinctrl.h>
 #include "StyleConfig.h"
 #include "SoundButton.h"
-#include "Rainanimation.h"
+#include "AnimationBase.h"
+#include <unordered_map>
 
 class MainFrame : public wxFrame {
 public:
@@ -28,6 +29,15 @@ public:
      void ApplyTheme(const ThemeConfig& theme);
     void OnCustomTheme(wxCommandEvent&);
 
+
+
+    ~MainFrame() {
+    for(auto& [key, anim] : animMap) {
+        delete anim;
+    }
+}
+
+
 private:
     // 成员变量
     std::vector<SoundButton*> soundButtons;
@@ -38,14 +48,25 @@ private:
     bool isRunning = false;
     wxColour currentBgColor;
     wxFont currentTimeFont;
-    RainAnimation* rainAnim = nullptr;
+
+
     wxWindow* rightPanel; // 右侧面板
     wxPanel* animPanel;
+
+     AnimationBase* currentAnim = nullptr;
+    std::unordered_map<std::string, AnimationBase*> animMap;
 
     // 初始化方法
     void InitUI();
     void CreateSoundPanel(wxWindow* parent);
     void CreateTimerPanel(wxWindow* parent);
+    void CreateAnimationPanel();  // 新增动画面板初始化方法
+   void SwitchAnimation(const std::string& animType); // 新增动画切换方法
     void SetColorRecursive(wxWindow* window, wxColour color);
     void OnShowStatistics(wxCommandEvent& event);
+
+     void ApplyNordLightTheme();
+    void ApplyNordDarkTheme();
+
+
 };

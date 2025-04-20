@@ -6,12 +6,13 @@
 
 
 RainAnimation::RainAnimation(wxWindow* parent)
-    : wxWindow(parent, wxID_ANY),
-      m_timer(this),
-      m_rng(std::random_device{}()) {
+    : AnimationBase(parent)
+    , m_timer(this)
+    , m_rng(std::mt19937(std::random_device{}()))
+{
     SetBackgroundStyle(wxBG_STYLE_PAINT);
-    Bind(wxEVT_PAINT, &RainAnimation::OnPaint, this);
-    Bind(wxEVT_TIMER, &RainAnimation::OnTimer, this);
+    Bind(wxEVT_PAINT,  &RainAnimation::OnPaint, this);
+    Bind(wxEVT_TIMER,  &RainAnimation::OnTimer, this);
 }
 
 void RainAnimation::Start() {
@@ -56,7 +57,7 @@ void RainAnimation::OnPaint(wxPaintEvent&) {
 
     if(!m_isActive) return;
 
-     wxSize areaSize = GetClientSize();
+    /* wxSize areaSize = GetClientSize();*/
 
 
     wxPen pen(wxColour(100, 181, 246), 2); // À¶É«´ÖÏßÌõ
