@@ -1,33 +1,29 @@
-#ifndef FIREANIMATION_H
-#define FIREANIMATION_H
-#include <vector>
+#pragma once
 #include "AnimationBase.h"
-#include <wx/wx.h>
-#include <wx/timer.h>
-#include<random>
+#include <wx/dcbuffer.h>
+#include <vector>
+
 class FireAnimation : public AnimationBase {
 public:
     FireAnimation(wxWindow* parent);
-     ~FireAnimation() override = default;
+    void OnPaint(wxPaintEvent& event) override;
+    void OnTimer(wxTimerEvent& event) override;
     void Start() override;
     void Stop() override;
 
-
 private:
-    void OnPaint(wxPaintEvent& evt);
-    void OnTimer(wxTimerEvent& evt);
-
-    struct Flame {
-        wxPoint base;
-        int height;
-        int phase;
+    wxTimer timer;
+    int frameCount;
+    struct FireParticle {
+        wxPoint position;
+        wxPoint velocity;
+        int life;
+        int maxLife;
+        wxColour color;
     };
-
-    wxTimer m_timer;
-    std::vector<Flame> m_flames;
-    std::mt19937 m_rng;
-    bool m_active = false;
+    std::vector<FireParticle> particles;
+    void InitializeParticles();
+    void UpdateParticles();
+    void DrawParticle(wxDC& dc, const FireParticle& particle);
+    wxColour GetFireColor(int life, int maxLife);
 };
-
-
-#endif // FIREANIMATION_H

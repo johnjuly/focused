@@ -2,86 +2,125 @@
 #include "FireAnimation.h"
 #include <wx/dcbuffer.h>
 #include <random>
+#include <algorithm>
 
 FireAnimation::FireAnimation(wxWindow* parent)
-    : AnimationBase(parent)
-    , m_timer(this)
-    , m_rng(std::mt19937(std::random_device{}()))
-{
-    SetBackgroundStyle(wxBG_STYLE_PAINT);
+    : AnimationBase(parent), frameCount(0) {
+    InitializeParticles();
+    
     Bind(wxEVT_PAINT, &FireAnimation::OnPaint, this);
-    Bind(wxEVT_TIMER, &FireAnimation::OnTimer, this);
+    timer.Bind(wxEVT_TIMER, &FireAnimation::OnTimer, this);
+}
+
+void FireAnimation::InitializeParticles() {
+    wxSize size = GetClientSize();
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> disX(0, size.GetWidth());
+    std::uniform_int_distribution<> disLife(30, 60);
+    std::uniform_int_distribution<> disVelX(-2, 2);
+    std::uniform_int_distribution<> disVelY(-4, -1);
+
+    particles.clear();
+    for (int i = 0; i < 100; i++) {
+        FireParticle particle;
+        particle.position = wxPoint(disX(gen), size.GetHeight() - 50);
+        particle.velocity = wxPoint(disVelX(gen), disVelY(gen));
+        particle.maxLife = disLife(gen);
+        particle.life = particle.maxLife;
+        particle.color = GetFireColor(particle.life, particle.maxLife);
+        particles.push_back(particle);
+    }
+}
+
+wxColour FireAnimation::GetFireColor(int life, int maxLife) {
+    float ratio = static_cast<float>(life) / maxLife;
+    
+    if (ratio > 0.8f) {
+        // æœ€çƒ­çš„ç«ç„° - ç™½è‰²åˆ°é»„è‰²
+        int intensity = static_cast<int>(255 * (1.0f - (ratio - 0.8f) / 0.2f));
+        return wxColour(255, 255, intensity);
+    } else if (ratio > 0.5f) {
+        // é»„è‰²åˆ°æ©™è‰²
+        int r = 255;
+        int g = static_cast<int>(255 * (ratio - 0.5f) / 0.3f);
+        return wxColour(r, g, 0);
+    } else if (ratio > 0.2f) {
+        // æ©™è‰²åˆ°çº¢è‰²
+        int r = 255;
+        int g = static_cast<int>(128 * (ratio - 0.2f) / 0.3f);
+        return wxColour(r, g, 0);
+    } else {
+        // çº¢è‰²åˆ°æ·±çº¢è‰²
+        int r = 255;
+        int g = static_cast<int>(64 * ratio / 0.2f);
+        return wxColour(r, g, 0);
+    }
+}
+
+void FireAnimation::UpdateParticles() {
+    wxSize size = GetClientSize();
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> disVelX(-2, 2);
+    std::uniform_int_distribution<> disVelY(-4, -1);
+    std::uniform_int_distribution<> disLife(30, 60);
+
+    // æ›´æ–°ç°æœ‰ç²’å­
+    for (auto& particle : particles) {
+        particle.life--;
+        if (particle.life <= 0) {
+            // é‡ç½®ç²’å­
+            particle.position = wxPoint(rand() % size.GetWidth(), size.GetHeight() - 50);
+            particle.velocity = wxPoint(disVelX(gen), disVelY(gen));
+            particle.maxLife = disLife(gen);
+            particle.life = particle.maxLife;
+        } else {
+            // æ›´æ–°ä½ç½®
+            particle.position += particle.velocity;
+            // æ·»åŠ ä¸€äº›éšæœºæ€§
+            particle.velocity.x += (rand() % 3) - 1;
+            particle.velocity.y += (rand() % 2) - 1;
+            // é™åˆ¶é€Ÿåº¦
+            particle.velocity.x = std::clamp(particle.velocity.x, -3, 3);
+            particle.velocity.y = std::clamp(particle.velocity.y, -5, -1);
+        }
+        particle.color = GetFireColor(particle.life, particle.maxLife);
+    }
+}
+
+void FireAnimation::DrawParticle(wxDC& dc, const FireParticle& particle) {
+    int size = 3 + (particle.life * 2 / particle.maxLife);
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.SetBrush(wxBrush(particle.color));
+    dc.DrawCircle(particle.position, size);
+}
+
+void FireAnimation::OnPaint(wxPaintEvent& event) {
+    wxBufferedPaintDC dc(this);
+    dc.Clear();
+    
+    // ç»˜åˆ¶èƒŒæ™¯
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.SetBrush(wxBrush(wxColour(0, 0, 0)));
+    dc.DrawRectangle(GetClientRect());
+    
+    // ç»˜åˆ¶ç²’å­
+    for (const auto& particle : particles) {
+        DrawParticle(dc, particle);
+    }
+}
+
+void FireAnimation::OnTimer(wxTimerEvent& event) {
+    frameCount++;
+    UpdateParticles();
+    Refresh();
 }
 
 void FireAnimation::Start() {
-    m_active = true;
-    m_flames.clear();
-    m_timer.Start(100);
+    timer.Start(30); // æ¯30æ¯«ç§’æ›´æ–°ä¸€æ¬¡
 }
 
 void FireAnimation::Stop() {
-    m_timer.Stop();
-    m_active = false;
-    m_flames.clear();   // Çå¿ÕËùÓĞ»ğÑæ
-    Refresh();
-}
-
-void FireAnimation::OnPaint(wxPaintEvent&) {
-    wxAutoBufferedPaintDC dc(this);
-    dc.Clear();
-
-    if (!m_active) return;
-
-    // »æÖÆËùÓĞ»ğÑæÁ£×Ó
-    for (const auto& f : m_flames) {
-        // »ğÑæÑÕÉ«Ëæ phase ÂÔÎ¢¶¶¶¯
-        int glow = 69 + (f.phase % 30);
-        wxColour color(255, glow, 0);
-        dc.SetBrush(wxBrush(color));
-        dc.SetPen(*wxTRANSPARENT_PEN);
-
-        wxPoint pts[3] = {
-            { f.base.x - 10, f.base.y + f.height },
-            { f.base.x,       f.base.y         },
-            { f.base.x + 10, f.base.y + f.height }
-        };
-        dc.DrawPolygon(3, pts);
-    }
-}
-
-void FireAnimation::OnTimer(wxTimerEvent&) {
-    if (!m_active) return;
-
-    wxSize size = GetClientSize();
-
-    // ·Ö²¼£ºx ×ø±ê¡¢»ğÑæ¸ß¶È¡¢¶¶¶¯ÏàÎ»
-    std::uniform_int_distribution<int> distX(0, size.GetWidth());
-    std::uniform_int_distribution<int> distH(20, 50);
-    std::uniform_int_distribution<int> distP(0, 29);
-
-    // ¸üĞÂÏÖÓĞ»ğÑæµÄÏàÎ»ºÍÉÏÒÆ
-    for (auto& f : m_flames) {
-        f.phase = (f.phase + 5) % 30;
-        f.base.y -= 2;  // ¹Ì¶¨ËÙ¶ÈÉÏÒÆ
-    }
-
-    // Èç¹ûÊıÁ¿²»×ã£¬Éú³ÉĞÂ»ğÑæ
-    if (m_flames.size() < 8) {
-        Flame newF;
-        newF.base   = wxPoint(distX(m_rng), size.GetHeight() - 50);
-        newF.height = distH(m_rng);
-        newF.phase  = distP(m_rng);
-        m_flames.push_back(newF);
-    }
-
-    // ÒÆ³ıÒÑ¾­ÍêÈ«ÒÆ³ö¶¥²¿µÄ»ğÑæ
-    m_flames.erase(
-        std::remove_if(m_flames.begin(), m_flames.end(),
-            [&](const Flame& f){
-                return f.base.y + f.height < 0;
-            }),
-        m_flames.end()
-    );
-
-    Refresh();
+    timer.Stop();
 }

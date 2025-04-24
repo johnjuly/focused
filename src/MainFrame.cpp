@@ -2,261 +2,315 @@
 #include "RainAnimation.h"
 #include "GlacierAnimation.h"
 #include "FireAnimation.h"
+#include "WindAnimation.h"
+#include "OceanAnimation.h"
+#include "CafeAnimation.h"
 
-#include <wx/clrpicker.h> // ÑÕÉ«Ñ¡Ôñ¿Ø¼şÍ·ÎÄ¼ş
+#include <wx/clrpicker.h> // é¢œè‰²é€‰æ‹©å™¨å¤´æ–‡ä»¶
 #include "SoundButton.h"
 #include <wx/fontpicker.h>
 #include <wx/splitter.h>
 #include <wx/scrolwin.h>
 #include <wx/spinctrl.h>
-#include <wx/colordlg.h>  // ÑÕÉ«¶Ô»°¿ò
-#include <wx/fontdlg.h>   // ×ÖÌå¶Ô»°¿ò
+#include <wx/colordlg.h>  // é¢œè‰²å¯¹è¯æ¡†
+#include <wx/fontdlg.h>   // å­—ä½“å¯¹è¯æ¡†
+
+#include <fstream>
+#include <sstream>
+#include <iomanip>
+
 
 
 MainFrame::MainFrame()
-    : wxFrame(nullptr, wxID_ANY, "focused",wxDefaultPosition, wxSize(800, 600)),
-    timer(new wxTimer(this)), // ³õÊ¼»¯¼ÆÊ±Æ÷
-      remainingSeconds(0),
-      isRunning(false)
+    : wxFrame(nullptr, wxID_ANY, wxString::FromUTF8("focused"), wxDefaultPosition, wxSize(800, 600)),
+    timer(new wxTimer(this)), // åˆå§‹åŒ–è®¡æ—¶å™¨
+    remainingSeconds(0),
+    isRunning(false)
 {
-
-    this->Bind(wxEVT_TIMER, &MainFrame::OnTimerTick, this);// °ó¶¨¼ÆÊ±Æ÷ÊÂ¼ş
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
+    this->Bind(wxEVT_TIMER, &MainFrame::OnTimerTick, this);
     InitUI();
+    LoadRecords();
+
+    // é€€å‡ºè®°å½•
+    Bind(wxEVT_TOOL, [=](wxCommandEvent&) { Close(true); }, wxID_EXIT);
+
+    // ç»Ÿè®¡è®°å½•
+    Bind(wxEVT_TOOL, &MainFrame::OnShowStatistics, this, 2001);
+
+    // è‡ªå®šä¹‰ä¸»é¢˜è®°å½•
+    Bind(wxEVT_TOOL, [=](wxCommandEvent&) {
+        ApplyNordDarkTheme();
+    }, ID_THEME_CUSTOM);
 }
 
 
 
 void MainFrame::InitUI(){
+    // è®¾ç½®ä¸»çª—å£çš„sizer
+    wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
+    SetSizer(mainSizer);
+
+    // åˆ›å»ºåˆ†å‰²çª—å£
     wxSplitterWindow* splitter = new wxSplitterWindow(this);
+    mainSizer->Add(splitter, 1, wxEXPAND);
 
-
-    // ×ó²àÉùÒôÃæ°å
+    // åˆ›å»ºå·¦ä¾§å£°éŸ³é¢æ¿
     wxScrolledWindow* soundPanel = new wxScrolledWindow(splitter);
     CreateSoundPanel(soundPanel);
 
-
-    rightPanel = new wxPanel(splitter); // ¸ÄÓÃwxPanel×÷ÎªÈİÆ÷
-
-     CreateAnimationPanel();
+    // åˆ›å»ºå³ä¾§é¢æ¿
+    rightPanel = new wxPanel(splitter);
     wxBoxSizer* rightSizer = new wxBoxSizer(wxVERTICAL);
     rightPanel->SetSizer(rightSizer);
 
-// ´´½¨¼ÆÊ±Æ÷Ãæ°å£¨¶ÀÁ¢Ãæ°å£©
-wxPanel* timerPanel = new wxPanel(rightPanel);
-CreateTimerPanel(timerPanel);
+    // åˆ›å»ºè®¡æ—¶å™¨é¢æ¿
+    wxPanel* timerPanel = new wxPanel(rightPanel);
+    CreateTimerPanel(timerPanel);
+    rightSizer->Add(timerPanel, 1, wxEXPAND | wxALL, 5);
 
-    // ÉèÖÃ·Ö¸î´°¿Ú²¼¾Ö
+    // åˆ›å»ºåŠ¨ç”»é¢æ¿
+    CreateAnimationPanel();
+    rightSizer->Add(animPanel, 1, wxEXPAND | wxALL, 5);  // Give it a proportion of 1 to expand
+
+    // è®¾ç½®åˆ†å‰²çª—å£
     splitter->SplitVertically(soundPanel, rightPanel, 300);
     splitter->SetMinimumPaneSize(200);
 
-    // °ó¶¨ÓÒ²àÃæ°å´óĞ¡±ä»¯ÊÂ¼ş
-    /*rightPanel->Bind(wxEVT_SIZE, [=](wxSizeEvent& evt) {
-        rainAnim->SetSize(evt.GetSize()); // ¶¯»­²ã¸úËæÃæ°å´óĞ¡
-        evt.Skip();*/
+    // åˆ›å»ºå·¥å…·æ 
+    m_toolbar = CreateToolBar(wxTB_HORIZONTAL | wxTB_TEXT);
+    m_toolbar->SetToolBitmapSize(wxSize(16, 16));
+    m_toolbar->SetThemeEnabled(false);
 
+    // æ·»åŠ å·¥å…·æ æŒ‰é’®
+    m_toolbar->AddTool(wxID_EXIT, wxString::FromUTF8("é€€å‡º"), wxBitmap("exit.png", wxBITMAP_TYPE_PNG));
+    m_toolbar->AddTool(2001, wxString::FromUTF8("ç»Ÿè®¡"), wxBitmap("stats.png", wxBITMAP_TYPE_PNG));
 
-// ²¼¾ÖÉèÖÃ
-rightSizer->Add(timerPanel, 1, wxEXPAND); // ¼ÆÊ±Æ÷Ãæ°åÕ¼1·İ
-rightSizer->Add(animPanel, 0, wxEXPAND);  // ¶¯»­ÇøÓò¹Ì¶¨¸ß¶È
+    // åˆ›å»ºä¸»é¢˜èœå•
+    wxMenu* themeMenu = new wxMenu;
+    themeMenu->Append(ID_THEME_NORD_LIGHT, "Nord Light");
+    themeMenu->Append(ID_THEME_NORD_DARK, "Nord Dark");
+    themeMenu->Append(ID_THEME_CUSTOM, wxString::FromUTF8("è‡ªå®šä¹‰"));
 
+    m_toolbar->AddTool(ID_THEME_MENU, wxString::FromUTF8("ä¸»é¢˜"), wxBitmap("theme.png", wxBITMAP_TYPE_PNG),
+                      wxEmptyString, wxITEM_DROPDOWN);
+    m_toolbar->SetDropdownMenu(ID_THEME_MENU, themeMenu);
+    m_toolbar->Realize();
 
+    // ç»‘å®šä¸»é¢˜èœå•äº‹ä»¶
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { ApplyNordLightTheme(); }, ID_THEME_NORD_LIGHT);
+    Bind(wxEVT_MENU, [this](wxCommandEvent&) { ApplyNordDarkTheme(); }, ID_THEME_NORD_DARK);
+    Bind(wxEVT_MENU, &MainFrame::OnCustomTheme, this, ID_THEME_CUSTOM);
 
-    // ¹Ø¼ü£ºÉèÖÃ·Ö¸îÆ÷²¼¾Ö
-    splitter->SplitVertically(soundPanel, rightPanel, 300);
-    splitter->SetMinimumPaneSize(200);
+    // åº”ç”¨åˆå§‹ä¸»é¢˜
+    ApplyNordLightTheme();
 
-
-
-     // ±ØĞëµ÷ÓÃ´Ëº¯ÊıÏÔÊ¾·Ö¸îÆ÷
-    splitter->SetSizer(new wxBoxSizer(wxHORIZONTAL));
-    splitter->Show(true);
-
-
-// ĞŞ¸Ä³ß´çÊÂ¼ş°ó¶¨
-/*
- animPanel->Bind(wxEVT_SIZE, [=](wxSizeEvent& evt) {
-        rainAnim->SetSize(evt.GetSize());
-
-    evt.Skip();
-
+    // Register for theme updates
+    ThemeManager::Get().RegisterCallback([this]() {
+        UpdateTheme();
     });
-
-*/
-    this->SetMenuBar(createMenu());
 }
 
-// ´´½¨ÉùÒô°´Å¥Ãæ°å
+// åˆ›å»ºå£°éŸ³é¢æ¿æŒ‰é’®
 void MainFrame::CreateSoundPanel(wxWindow* parent){
     wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
 
-    // ÒôÁ¿¿ØÖÆ
+    // å£°éŸ³
     wxSlider* volumeSlider = new wxSlider(parent, wxID_ANY, 100, 0, 100);
     volumeSlider->Bind(wxEVT_SLIDER, [=](wxCommandEvent& e){
         float volume = e.GetInt() / 100.0f;
         for(auto btn : soundButtons){
-            btn->SetVolume(volume);// µ÷ÕûËùÓĞÉùÒô°´Å¥ÒôÁ¿
+            btn->SetVolume(volume);
         }
     });
 
-    // ÉùÒô°´Å¥Íø¸ñ
+    // å£°éŸ³æŒ‰é’®
     wxGridSizer* grid = new wxGridSizer(2, 5, 5);
     const std::vector<std::pair<wxString, std::string>> sounds = {
-        {"ÓêÉù", "rain.wav"},
-        {"¿§·È¹İ", "cafe.wav"},
-        {"±ù´¨", "icebergs.wav"},
-        {"·çÉù", "wind-in-forest.wav"},
-        {"º£ÀË", "waves.wav"},
-        {"Ä¾»ğ", "fire.wav"}
+        {wxString::FromUTF8("é›¨å£°"), "rain.wav"},
+        {wxString::FromUTF8("å’–å•¡é¦†"), "cafe.wav"},
+        {wxString::FromUTF8("å†°å·"), "icebergs.wav"},
+        {wxString::FromUTF8("æ£®æ—"), "wind-in-forest.wav"},
+        {wxString::FromUTF8("æµ·æµª"), "waves.wav"},
+        {wxString::FromUTF8("æœ¨ç«"), "fire.wav"}
     };
 
     for(const auto& [name, path] : sounds){
         SoundButton* btn = new SoundButton(parent, name, path);
         btn->SetMinSize(wxSize(140, 80));
         btn->Bind(wxEVT_TOGGLEBUTTON, [=](wxCommandEvent& e){
-            btn->ToggleSound();// ÇĞ»»²¥·Å/Í£Ö¹
-           /* btn->SetBackgroundColour(
-                e.IsChecked() ? wxColour(220, 240, 220) : *wxWHITE
-            );
-                */
-             // Ìí¼ÓÓê¶¯»­¿ØÖÆ
+            btn->ToggleSound();
 
-        if(e.IsChecked()) {
-        std::string animType = "";
-        if(name == "ÓêÉù") animType = "rain";
-        else if(name == "±ù´¨") animType = "glacier";
-        else if(name == "Ä¾»ğ") animType = "fire";
-        else if(name == "·çÉù") animType = "wind";
+            if(e.IsChecked()) {
+                std::string animType = "";
+                if(name == wxString::FromUTF8("é›¨å£°")) animType = "rain";
+                else if(name == wxString::FromUTF8("å†°å·")) animType = "glacier";
+                else if(name == wxString::FromUTF8("æœ¨ç«")) animType = "fire";
+                else if(name == wxString::FromUTF8("æ£®æ—")) animType = "wind";
+                else if(name == wxString::FromUTF8("æµ·æµª")) animType = "ocean";
+                else if(name == wxString::FromUTF8("å’–å•¡é¦†")) animType = "cafe";
 
-        if(!animType.empty()) {
-            SwitchAnimation(animType);
-        }
-    } else {
-        if(currentAnim) {
-            currentAnim->Stop();
-            currentAnim->Hide();
-        }
-    }
+                // åœæ­¢å½“å‰åŠ¨ç”»
+                if(currentAnim) {
+                    currentAnim->Stop();
+                    currentAnim->Hide();
+                }
 
+                // å¯åŠ¨æ–°åŠ¨ç”»
+                if(!animType.empty()) {
+                    auto it = animMap.find(animType);
+                    if(it != animMap.end()) {
+                        currentAnim = it->second;
+                        currentAnim->SetSize(animPanel->GetClientSize());
+                        currentAnim->Show();
+                        currentAnim->Start();
+                        animPanel->Layout();
+                    }
+                }
+            } else {
+                // åœæ­¢åŠ¨ç”»
+                if(currentAnim) {
+                    currentAnim->Stop();
+                    currentAnim->Hide();
+                    currentAnim = nullptr;
+                }
+            }
 
-
+            // åˆ·æ–°å¸ƒå±€
+            rightPanel->Layout();
         });
         soundButtons.push_back(btn);
         grid->Add(btn, 1, wxEXPAND);
     }
-     // ²¼¾Ö¿Ø¼ş
+
     mainSizer->Add(volumeSlider, 0, wxEXPAND|wxALL, 10);
     mainSizer->Add(grid, 1, wxEXPAND|wxALL, 10);
     parent->SetSizer(mainSizer);
-    dynamic_cast<wxScrolledWindow*>(parent)->SetScrollRate(10, 10); // ÕıÈ·
+    dynamic_cast<wxScrolledWindow*>(parent)->SetScrollRate(10, 10);
 }
 
-// ´´½¨¼ÆÊ±Æ÷Ãæ°å
+// åˆ›å»ºè®¡æ—¶å™¨é¢æ¿
 void MainFrame::CreateTimerPanel(wxWindow* parent){
-
-     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-
-
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
     timeDisplay = new wxStaticText(parent, wxID_ANY, "25:00",
                                 wxDefaultPosition, wxDefaultSize,
-                                wxALIGN_CENTER);// Ê±¼äÏÔÊ¾¿Ø¼ş
+                                wxALIGN_CENTER);
 
     timeDisplay->SetFont({48, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL, false, "Arial"});
-     timeDisplay->SetForegroundColour({30, 144, 255});
+    timeDisplay->SetForegroundColour({30, 144, 255});
 
-    // ³õÊ¼»¯Ê±¼äÊäÈë¿Ø¼ş
     wxSpinCtrl* timeInput = new wxSpinCtrl(parent, wxID_ANY, "25",
                                         wxDefaultPosition, wxDefaultSize,
                                         wxSP_ARROW_KEYS, 1, 120);
-
-         //³õÊ¼»¯°´Å¥£¬Ê¹ÓÃ³ÉÔ±±äÁ¿
-     startBtn = new wxButton(parent, wxID_ANY, "¿ªÊ¼");
-     stopBtn = new wxButton(parent, wxID_ANY, "Í£Ö¹");
-
-
-
-    //°ó¶¨Ê±¼äÊäÈëÊÂ¼ş
+  //åˆå§‹åŒ–æŒ‰é’®ï¼Œä½¿ç”¨æˆå‘˜å˜é‡
+     startBtn = new wxButton(parent, wxID_ANY, wxString::FromUTF8("å¼€å§‹"));
+     stopBtn = new wxButton(parent, wxID_ANY, wxString::FromUTF8("åœæ­¢"));
+    //timeInput event
     timeInput->Bind(wxEVT_SPINCTRL, [=](wxCommandEvent& e){
                     int minutes =e.GetInt();
-                    remainingSeconds = minutes * 60;//·ÖÖÓ×ª»¯ÎªÃë
+                    remainingSeconds = minutes * 60;//è½¬æ¢ä¸ºç§’
         timeDisplay->SetLabel(wxString::Format("%02d:00", minutes));
     });
 
-
-
-    //°ó¶¨¿ªÊ¼°´Å¥ÊÂ¼ş
+    //startBtn event
     startBtn->Bind(wxEVT_BUTTON, [=](wxCommandEvent&){
         if(!isRunning){
                     timer->Unbind(wxEVT_TIMER, &MainFrame::OnTimerTick, this);
 
-        // ÖØĞÂ°ó¶¨ÊÂ¼ş
+        // ç»‘å®šäº‹ä»¶
         timer->Bind(wxEVT_TIMER, &MainFrame::OnTimerTick, this);
              remainingSeconds = timeInput->GetValue() * 60;
             isRunning = true;
-            timer->Start(1000);//Æô¶¯¼ÆÊ±Æ÷£¬¼ä¸ô1Ãë
+            timer->Start(1000);//è®¡æ—¶å™¨å¼€å§‹ï¼Œæ¯ç§’ä¸€æ¬¡
             timeDisplay->SetLabel(wxString::Format("%02d:00", remainingSeconds / 60));
         }
     });
 
-
-
-
-    //°ó¶¨Í£Ö¹°´Å¥ÊÂ¼ş
+    //stopBtn event
     stopBtn->Bind(wxEVT_BUTTON, [=](wxCommandEvent&){
         timer->Stop();
         isRunning = false;
+
+        int used = timeInput->GetValue() * 60 - remainingSeconds;
+        if (used > 0) {
+            FocusRecord rec;
+            rec.startTime = std::chrono::system_clock::now() - std::chrono::seconds(used);
+            rec.durationSec = used;
+            focusRecords.push_back(rec);
+            SaveRecords();
+        }
+
+
         remainingSeconds = 0;
         timeDisplay->SetLabel("00:00");
     });
 
 
 
-    //²¼¾Ö¿Ø¼ş
-
-
-    /* sizer->Add(timeDisplay, 1, wxEXPAND|wxALL, 20);
-    sizer->Add(timeInput, 0, wxEXPAND|wxALL, 10);
-    sizer->Add(startBtn, 0, wxEXPAND|wxALL, 5);
-    sizer->Add(stopBtn, 0, wxEXPAND|wxALL, 5);
-    parent->SetSizer(sizer);*/
-     sizer->AddStretchSpacer();
+    sizer->AddStretchSpacer(1);
     sizer->Add(timeDisplay, 0, wxALIGN_CENTER|wxBOTTOM, 20);
     sizer->Add(timeInput, 0, wxALIGN_CENTER|wxBOTTOM, 10);
     sizer->Add(startBtn, 0, wxALIGN_CENTER|wxBOTTOM, 5);
     sizer->Add(stopBtn, 0, wxALIGN_CENTER);
-    sizer->AddStretchSpacer();
+    sizer->AddStretchSpacer(1);
 
     parent->SetSizer(sizer);
+
+
 }
 
 
 void MainFrame::CreateAnimationPanel() {
+    // åˆ›å»ºåŠ¨ç”»é¢æ¿
     animPanel = new wxPanel(rightPanel);
-    animPanel->SetMinSize(wxSize(-1, 200));
 
-    // ³õÊ¼»¯ËùÓĞ¶¯»­
+
+
+
+    // åˆ›å»ºåŠ¨ç”»é¢æ¿çš„sizer
+    wxBoxSizer* animSizer = new wxBoxSizer(wxVERTICAL);
+    animPanel->SetSizer(animSizer);
+
+    // åˆå§‹åŒ–åŠ¨ç”»
     animMap["rain"] = new RainAnimation(animPanel);
     animMap["glacier"] = new GlacierAnimation(animPanel);
     animMap["fire"] = new FireAnimation(animPanel);
-    /*animMap["wind"] = new WindAnimation(animPanel);*/
+    animMap["wind"] = new WindAnimation(animPanel);
+    animMap["ocean"] = new OceanAnimation(animPanel);
+    animMap["cafe"] = new CafeAnimation(animPanel);
 
-    // ³õÊ¼Òş²ØËùÓĞ¶¯»­
+    // è®¾ç½®æ‰€æœ‰åŠ¨ç”»çš„å¤§å°å’Œsizer
     for(auto& [key, anim] : animMap) {
         anim->Hide();
+        anim->SetSize(animPanel->GetClientSize());
+        animSizer->Add(anim, 1, wxEXPAND | wxALL, 0);
     }
 
+    // ç»‘å®šå¤§å°å˜åŒ–äº‹ä»¶
+    animPanel->Bind(wxEVT_SIZE, [this](wxSizeEvent& evt) {
+        wxSize size = evt.GetSize();
+        for(auto& [key, anim] : animMap) {
+            anim->SetSize(size);
+        }
+        if(currentAnim) {
+            currentAnim->Refresh();
+        }
+        evt.Skip();
+    });
 }
-// ¼ÆÊ±Æ÷ÊÂ¼ş´¦Àí£ºÃ¿Ãë¸üĞÂÊ£ÓàÊ±¼ä
+
+// è®¡æ—¶å™¨äº‹ä»¶ï¼Œæ¯ç§’æ›´æ–°å‰©ä½™æ—¶é—´
 void MainFrame::OnTimerTick(wxTimerEvent&){
     if(remainingSeconds > 0){
         remainingSeconds--;
 
-        //¸üĞÂÊ±¼äÏÔÊ¾
+        //å½“å‰æ—¶é—´æ˜¾ç¤º
         int mins = remainingSeconds / 60;
         int secs = remainingSeconds % 60;
         timeDisplay->SetLabel(wxString::Format("%02d:%02d", mins, secs));
 
-        //Ç¿ÖÆË¢ĞÂ½çÃæ
+        //å¼ºåˆ¶åˆ·æ–°
         timeDisplay->Refresh();
 
     }else {if (isRunning&& remainingSeconds == 0){
@@ -265,116 +319,19 @@ void MainFrame::OnTimerTick(wxTimerEvent&){
 
         timer->Stop();
         timer->Unbind(wxEVT_TIMER, &MainFrame::OnTimerTick, this);
-        wxMessageDialog dialog(nullptr, "ĞİÏ¢Ò»ÏÂ°É(£ş¦á£ş£©", "ÌáÊ¾", wxOK | wxICON_NONE);
+         wxMessageDialog dialog(nullptr, wxString::FromUTF8("ä¼‘æ¯ä¸€ä¸‹å§(ï¿£ï¸¶ï¿£ï¼‰"), wxString::FromUTF8("æç¤º"), wxOK | wxICON_NONE);
          dialog.ShowModal();
 
 
         isRunning = false;
+          RecordSession();
          remainingSeconds = -1;
          timeDisplay->SetLabel("00:00");}}
 
 
 }
 
-wxMenuBar* MainFrame::createMenu() {
-    wxMenuBar* menuBar = new wxMenuBar();
-    menuBar->SetBackgroundColour(ThemeManager::Get().GetCurrentTheme().cardBg);
 
-    // ÎÄ¼ş²Ëµ¥
-    wxMenu* fileMenu = new wxMenu;
-    fileMenu->Append(wxID_EXIT, "ÍË³ö(&Q)");
-
-
-
-    // ÓÃ»§²Ëµ¥
-    wxMenu* userMenu = new wxMenu;
-    userMenu->Append(2001, "×¨×¢Í³¼Æ(&S)");
-
-    menuBar->Append(fileMenu, "ÎÄ¼ş(&F)");
-
-    menuBar->Append(userMenu, "ÓÃ»§(&U)");
-
-
-    wxMenu* themeMenu = new wxMenu;
-
-
-    themeMenu->Append(ID_THEME_LIGHT, "Nord Light");
-themeMenu->Append(ID_THEME_DARK, "Nord Dark");
-
-themeMenu->AppendSeparator();
-themeMenu->Append(ID_THEME_CUSTOM, "×Ô¶¨ÒåÖ÷Ìâ...");
- menuBar->Append(themeMenu, "Ö÷Ìâ(&T)");
-
-// °ó¶¨²Ëµ¥ÊÂ¼ş
-Bind(wxEVT_MENU, [=](wxCommandEvent&) {
-    ApplyNordLightTheme();
-}, ID_THEME_LIGHT);
-
-Bind(wxEVT_MENU, [=](wxCommandEvent&) {
-    ApplyNordDarkTheme();
-}, ID_THEME_DARK);
-
-Bind(wxEVT_MENU, [=](wxCommandEvent&) {
-    wxDialog dlg(this, wxID_ANY, "×Ô¶¨ÒåÖ÷Ìâ");
-    wxPanel* panel = new wxPanel(&dlg);
-
-    // ÑÕÉ«Ñ¡Ôñ¿Ø¼ş
-    wxColourPickerCtrl* bgPicker = new wxColourPickerCtrl(panel, wxID_ANY,
-        ThemeManager::Get().GetCurrentTheme().mainBg);
-    wxColourPickerCtrl* textPicker = new wxColourPickerCtrl(panel, wxID_ANY,
-        ThemeManager::Get().GetCurrentTheme().textPrimary);
-
-    // ²¼¾Ö
-    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(new wxStaticText(panel, wxID_ANY, "±³¾°ÑÕÉ«:"), 0, wxALL, 5);
-    sizer->Add(bgPicker, 0, wxEXPAND | wxALL, 5);
-    sizer->Add(new wxStaticText(panel, wxID_ANY, "ÎÄ±¾ÑÕÉ«:"), 0, wxALL, 5);
-    sizer->Add(textPicker, 0, wxEXPAND | wxALL, 5);
-
-    // È·ÈÏ°´Å¥
-    wxButton* btnOK = new wxButton(panel, wxID_OK, "È·¶¨");
-    sizer->Add(btnOK, 0, wxALIGN_CENTER | wxALL, 10);
-
-    panel->SetSizer(sizer);
-    if (dlg.ShowModal() == wxID_OK) {
-        ThemeConfig customTheme;
-        customTheme.mainBg = bgPicker->GetColour();
-        customTheme.textPrimary = textPicker->GetColour();
-        ThemeManager::Get().SetTheme(customTheme);
-         OnThemeChanged();
-    }
-}, ID_THEME_CUSTOM);
-
-    // ÊÂ¼ş°ó¶¨
-    Bind(wxEVT_MENU, [=](wxCommandEvent&) {
-        wxColourDialog dlg(this);
-        if(dlg.ShowModal() == wxID_OK) {
-            ApplyColorToAll(dlg.GetColourData().GetColour());
-        }
-    }, 1001);
-
-    Bind(wxEVT_MENU, [=](wxCommandEvent&) {
-        wxFontDialog dlg(this);
-        if(dlg.ShowModal() == wxID_OK) {
-            ApplyFontToDisplay(dlg.GetFontData().GetChosenFont());
-        }
-    }, 1002);
-
-    Bind(wxEVT_MENU, [=](wxCommandEvent&) {
-        ApplyColorToAll(ThemeManager::Get().GetCurrentTheme().cardBg);
-        ApplyFontToDisplay(ThemeManager::Get().GetCurrentTheme().timeFont);
-    }, 1003);
-
-    Bind(wxEVT_MENU, &MainFrame::OnShowStatistics, this, 2001);
-
-    Bind(wxEVT_MENU, [=](wxCommandEvent&) {
-    Close(true); // ¹Ø±ÕÖ÷´°¿Ú
-}, wxID_EXIT);
-
-    return menuBar;
-
-
-}
 void MainFrame::SetColorRecursive(wxWindow* window, wxColour color) {
     if (!window) return;
 
@@ -383,11 +340,11 @@ void MainFrame::SetColorRecursive(wxWindow* window, wxColour color) {
 
     wxWindowList children = window->GetChildren();
     for (wxWindow* child : children) {
-        SetColorRecursive(child, color);  // µİ¹éÉèÖÃ×Ó´°¿ÚÑÕÉ«
+        SetColorRecursive(child, color);  // é€’å½’è®¾ç½®é¢œè‰²
     }
 }
 
-// ÊµÏÖÑÕÉ«Ó¦ÓÃ¹¦ÄÜ
+// å®ç°é¢œè‰²åº”ç”¨å‡½æ•°
 // MainFrame.cpp
 void MainFrame::ApplyColorToAll(wxColour color) {
 
@@ -397,28 +354,28 @@ void MainFrame::ApplyColorToAll(wxColour color) {
         win->SetBackgroundColour(color);
         win->Refresh();
 
-        // µİ¹é´¦Àí×Ó¿Ø¼ş
+        // é€’å½’éå†å­éƒ¨ä»¶
         wxWindowList& children = win->GetChildren();
         for (wxWindow* child : children) {
             SetColorRecursive(child);
         }
     };
 
-    // ´ÓÖ÷´°¿Ú¿ªÊ¼Ó¦ÓÃ
+    // ä»å½“å‰éƒ¨ä»¶å¼€å§‹åº”ç”¨
     SetColorRecursive(this);
 
-    // ÌØÊâ¿Ø¼ş´¦Àí
+    // å…³é”®éƒ¨ä»¶
     if(timeDisplay) {
         timeDisplay->SetBackgroundColour(color.ChangeLightness(95));
     }
     currentBgColor = color;
 }
 
-// ÊµÏÖ×ÖÌåÓ¦ÓÃ¹¦ÄÜ
+// å®ç°å­—ä½“åº”ç”¨å‡½æ•°
 void MainFrame::ApplyFontToDisplay(wxFont font) {
     timeDisplay->SetFont(font);
     currentTimeFont = font;
-    Layout(); // ×Ô¶¯µ÷Õû²¼¾Ö
+    Layout(); // è‡ªåŠ¨å¸ƒå±€
 }
 
 
@@ -434,7 +391,7 @@ void MainFrame::ApplyThemeToWindow(wxWindow* window, const ThemeConfig& theme) {
 
     window->SetForegroundColour(theme.textPrimary);
 
-    // ÌØÊâ¿Ø¼ş´¦Àí
+    // å…³é”®éƒ¨ä»¶
     if(auto btn = dynamic_cast<wxButton*>(window)){
         btn->SetBackgroundColour(theme.frost[0]); // nord7
         btn->SetForegroundColour(theme.polar_night[0]);
@@ -443,127 +400,381 @@ void MainFrame::ApplyThemeToWindow(wxWindow* window, const ThemeConfig& theme) {
     if(auto st = dynamic_cast<wxStaticText*>(window)) {
         st->SetForegroundColour(theme.frost[3]); // nord10
     }
-    // µİ¹é´¦Àí×Ó¿Ø¼ş
+    // é€’å½’éå†å­éƒ¨ä»¶
     wxWindowList& children = window->GetChildren();
     for (wxWindow* child : children) {
         ApplyThemeToWindow(child, theme);
     }
 }
 
-// MainFrame.cpp£¨×Ô¶¨ÒåÖ÷Ìâ¶Ô»°¿ò£©
+// MainFrame.cppè‡ªåŠ¨åº”ç”¨ä¸»é¢˜çª—å£
 void MainFrame::OnCustomTheme(wxCommandEvent&) {
-    wxDialog dlg(this, wxID_ANY, "×Ô¶¨ÒåÖ÷Ìâ");
+    // åˆ›å»ºè‡ªå®šä¹‰ä¸»é¢˜å¯¹è¯æ¡†
+    wxDialog dlg(this, wxID_ANY, wxString::FromUTF8("è‡ªå®šä¹‰ä¸»é¢˜"));
     wxPanel* panel = new wxPanel(&dlg);
 
-    // ÑÕÉ«Ñ¡Ôñ¿Ø¼ş
-    wxColourPickerCtrl* bgColorPicker = new wxColourPickerCtrl(panel, wxID_ANY,
-        ThemeManager::Get().GetCurrentTheme().mainBg);
-    wxColourPickerCtrl* textColorPicker = new wxColourPickerCtrl(panel, wxID_ANY,
-        ThemeManager::Get().GetCurrentTheme().textPrimary);
+    // è·å–å½“å‰ä¸»é¢˜
+    const auto& currentTheme = ThemeManager::Get().GetCurrentTheme();
 
-    // ×ÖÌåÑ¡Ôñ¿Ø¼ş
-    wxFontPickerCtrl* titleFontPicker = new wxFontPickerCtrl(panel, wxID_ANY,
-        ThemeManager::Get().GetCurrentTheme().titleFont);
-    wxFontPickerCtrl* timeFontPicker = new wxFontPickerCtrl(panel, wxID_ANY,
-        ThemeManager::Get().GetCurrentTheme().timeFont);
+    // åˆ›å»ºé¢œè‰²é€‰æ‹©å™¨
+    auto* bgPicker = new wxColourPickerCtrl(panel, wxID_ANY, currentTheme.mainBg,
+        wxDefaultPosition, wxDefaultSize, wxCLRP_DEFAULT_STYLE | wxCLRP_SHOW_LABEL);
+    auto* cardPicker = new wxColourPickerCtrl(panel, wxID_ANY, currentTheme.cardBg,
+        wxDefaultPosition, wxDefaultSize, wxCLRP_DEFAULT_STYLE | wxCLRP_SHOW_LABEL);
+    auto* primaryPicker = new wxColourPickerCtrl(panel, wxID_ANY, currentTheme.primary,
+        wxDefaultPosition, wxDefaultSize, wxCLRP_DEFAULT_STYLE | wxCLRP_SHOW_LABEL);
+    auto* textPicker = new wxColourPickerCtrl(panel, wxID_ANY, currentTheme.textPrimary,
+        wxDefaultPosition, wxDefaultSize, wxCLRP_DEFAULT_STYLE | wxCLRP_SHOW_LABEL);
 
-    // ²¼¾Ö
+    // åˆ›å»ºå¸ƒå±€
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(new wxStaticText(panel, wxID_ANY, "±³¾°ÑÕÉ«:"), 0, wxALL, 5);
-    sizer->Add(bgColorPicker, 0, wxEXPAND | wxALL, 5);
-    sizer->Add(new wxStaticText(panel, wxID_ANY, "ÎÄ±¾ÑÕÉ«:"), 0, wxALL, 5);
-    sizer->Add(textColorPicker, 0, wxEXPAND | wxALL, 5);
-    sizer->Add(new wxStaticText(panel, wxID_ANY, "±êÌâ×ÖÌå:"), 0, wxALL, 5);
-    sizer->Add(titleFontPicker, 0, wxEXPAND | wxALL, 5);
-    sizer->Add(new wxStaticText(panel, wxID_ANY, "Ê±¼ä×ÖÌå:"), 0, wxALL, 5);
-    sizer->Add(timeFontPicker, 0, wxEXPAND | wxALL, 5);
 
-    wxButton* btnOK = new wxButton(panel, wxID_OK, "È·¶¨");
-    sizer->Add(btnOK, 0, wxALIGN_CENTER | wxALL, 10);
+    // æ·»åŠ é¢œè‰²é€‰æ‹©å™¨
+    auto addColorPicker = [&](const wxString& label, wxColourPickerCtrl* picker) {
+        wxBoxSizer* row = new wxBoxSizer(wxHORIZONTAL);
+        row->Add(new wxStaticText(panel, wxID_ANY, label), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
+        row->Add(picker, 1, wxEXPAND);
+        sizer->Add(row, 0, wxEXPAND | wxALL, 5);
+    };
 
+    addColorPicker(wxString::FromUTF8("ä¸»èƒŒæ™¯é¢œè‰²:"), bgPicker);
+    addColorPicker(wxString::FromUTF8("å¡ç‰‡èƒŒæ™¯:"), cardPicker);
+    addColorPicker(wxString::FromUTF8("ä¸»é¢˜è‰²:"), primaryPicker);
+    addColorPicker(wxString::FromUTF8("æ–‡æœ¬é¢œè‰²:"), textPicker);
+
+    // æ·»åŠ æŒ‰é’®
+    wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
+    wxButton* okBtn = new wxButton(panel, wxID_OK, wxString::FromUTF8("ç¡®å®š"));
+    wxButton* cancelBtn = new wxButton(panel, wxID_CANCEL, wxString::FromUTF8("å–æ¶ˆ"));
+    btnSizer->Add(okBtn, 0, wxRIGHT, 5);
+    btnSizer->Add(cancelBtn, 0);
+    sizer->Add(btnSizer, 0, wxALIGN_CENTER | wxALL, 10);
+
+    // è®¾ç½®é¢æ¿å¸ƒå±€
     panel->SetSizer(sizer);
+    sizer->Fit(panel);
+
+    // è®¾ç½®å¯¹è¯æ¡†å¤§å°
+    dlg.SetSize(400, -1);
+    dlg.Center();
+
+    // æ˜¾ç¤ºå¯¹è¯æ¡†å¹¶å¤„ç†ç»“æœ
     if (dlg.ShowModal() == wxID_OK) {
-        ThemeConfig customTheme;
-        customTheme.mainBg = bgColorPicker->GetColour();
-        customTheme.textPrimary = textColorPicker->GetColour();
-        customTheme.titleFont = titleFontPicker->GetSelectedFont();
-        customTheme.timeFont = timeFontPicker->GetSelectedFont();
-        ThemeManager::Get().SetTheme(customTheme);
-         OnThemeChanged();
+        ThemeConfig newTheme = currentTheme;
+        newTheme.mainBg = bgPicker->GetColour();
+        newTheme.cardBg = cardPicker->GetColour();
+        newTheme.primary = primaryPicker->GetColour();
+        newTheme.textPrimary = textPicker->GetColour();
+
+        // åº”ç”¨æ–°ä¸»é¢˜
+        ThemeManager::Get().SetTheme(newTheme);
+        UpdateTheme();
     }
 }
-// Ö÷Ìâ±ä¸üÊÂ¼ş´¦Àí
+
+// äº‹ä»¶
 void MainFrame::OnThemeChanged() {
     const auto& theme = ThemeManager::Get().GetCurrentTheme();
+
+    // åº”ç”¨ä¸»é¢˜åˆ°æ‰€æœ‰çª—å£ç»„ä»¶
     ApplyThemeToWindow(this, theme);
-    Refresh(); // Ç¿ÖÆÖØ»æ½çÃæ
 
-     // ÌØÊâ¿Ø¼ş¸üĞÂ
-    if(timeDisplay) {
-        timeDisplay->SetForegroundColour(theme.textPrimary);
-        timeDisplay->SetBackgroundColour(theme.mainBg);
+    // ç‰¹åˆ«å¤„ç†å·¥å…·æ 
+    if (m_toolbar) {
+        m_toolbar->SetBackgroundColour(theme.mainBg);
+        m_toolbar->Refresh();
     }
-    rightPanel->SetBackgroundColour(theme.cardBg);
 
+    // ç‰¹åˆ«å¤„ç†å³ä¾§é¢æ¿
+    if (rightPanel) {
+        rightPanel->SetBackgroundColour(theme.cardBg);
+    }
+
+    // ç‰¹åˆ«å¤„ç†åŠ¨ç”»é¢æ¿
+    if (animPanel) {
+        animPanel->SetBackgroundColour(theme.mainBg);
+        for(auto& [key, anim] : animMap) {
+            anim->UpdateTheme();
+        }
+    }
+
+    // åˆ·æ–°æ•´ä¸ªçª—å£
     Refresh();
     Update();
     Layout();
-
 }
 
-void MainFrame::OnShowStatistics(wxCommandEvent& event) {
+void MainFrame::UpdateTheme() {
+    const auto& theme = ThemeManager::Get().GetCurrentTheme();
+
+    // Apply theme to main window
+    SetBackgroundColour(theme.mainBg);
+
+    // Apply theme to toolbar
+    if (m_toolbar) {
+        m_toolbar->SetBackgroundColour(theme.mainBg);
+        m_toolbar->Refresh();
+    }
+
+    // Apply theme to right panel
+    if (rightPanel) {
+        rightPanel->SetBackgroundColour(theme.cardBg);
+        rightPanel->Refresh();
+    }
+
+    // Apply theme to timer display
+    if (timeDisplay) {
+        timeDisplay->SetBackgroundColour(theme.cardBg);
+        timeDisplay->SetForegroundColour(theme.frost[3]);  // nord10
+        timeDisplay->SetFont(theme.timeFont);
+    }
+
+    // Apply theme to buttons
+    if (startBtn) {
+        startBtn->SetBackgroundColour(theme.frost[0]);  // nord7
+        startBtn->SetForegroundColour(theme.polar_night[0]);
+        startBtn->SetFont(theme.titleFont);
+    }
+    if (stopBtn) {
+        stopBtn->SetBackgroundColour(theme.frost[0]);  // nord7
+        stopBtn->SetForegroundColour(theme.polar_night[0]);
+        stopBtn->SetFont(theme.titleFont);
+    }
+
+    // Apply theme to sound buttons
+    for (auto* btn : soundButtons) {
+        if (btn) {
+            btn->UpdateTheme();
+        }
+    }
+
+    // Apply theme to animation panel and all animations
+    if (animPanel) {
+        animPanel->SetBackgroundColour(theme.mainBg);
+        for (const auto& pair : animMap) {
+            if (pair.second) {
+                pair.second->UpdateTheme();
+            }
+        }
+    }
+
+    // Refresh everything
+    Refresh();
+    Update();
+    Layout();
+}
+
+// 1) è¯»å– CSV è®°å½• focusRecords
+void MainFrame::LoadRecords() {
+    std::ifstream ifs(dataFilePath.mb_str());
+    if (!ifs.is_open()) return;  // æ–‡ä»¶ä¸å­˜åœ¨æ—¶ç›´æ¥è¿”å›
+
+    focusRecords.clear();
+    std::string line;
+    // è¯»å–æ ‡é¢˜è¡Œ
+    std::getline(ifs, line);
+
+    while (std::getline(ifs, line)) {
+        std::istringstream ss(line);
+        std::string timeStr;
+        int dur;
+        if (std::getline(ss, timeStr, ',') && ss >> dur) {
+            std::tm tm = {};
+            std::istringstream ts(timeStr);
+            ts >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
+            if (!ts.fail()) {
+                auto tt = std::mktime(&tm);
+                FocusRecord rec;
+                rec.startTime = std::chrono::system_clock::from_time_t(tt);
+                rec.durationSec = dur;
+                focusRecords.push_back(rec);
+            }
+        }
+    }
+}
+
+// 2) åœ¨å½“å‰ç›®å½•ä¸‹å†™å…¥ CSV
+void MainFrame::SaveRecords() {
+    std::ofstream ofs(dataFilePath.mb_str(), std::ios::trunc);
+    ofs << "start_time,duration\n";
+    for (auto& r : focusRecords) {
+        auto tt = std::chrono::system_clock::to_time_t(r.startTime);
+        std::tm* tm = std::localtime(&tt);
+        ofs << std::put_time(tm, "%Y-%m-%dT%H:%M:%S")
+            << ',' << r.durationSec << "\n";
+    }
+}
+
+
+
+// 3) æ¯ä¸ªä¸“æ³¨æ—¶é—´æ®µè®°å½•ï¼Œè®°å½•åœ¨ focusRecords
+void MainFrame::RecordSession() {
+    FocusRecord rec;
+    // å¼€å§‹æ—¶é—´ = ä¹‹å‰æ—¶é—´ - ä½¿ç”¨æ—¶é—´
+    rec.startTime = std::chrono::system_clock::now() - std::chrono::seconds(rec.durationSec =
+                         (timer->IsRunning() ? (timeInput->GetValue()*60 - remainingSeconds) : remainingSeconds));
+    focusRecords.push_back(rec);
+    SaveRecords();
+}
+
+
+
+void MainFrame::OnShowStatistics(wxCommandEvent&) {
+    using namespace std::chrono;
+    auto now = system_clock::now();
+
+    // åˆ›å»ºç»Ÿè®¡å¯¹è¯æ¡†
+    wxDialog dlg(this, wxID_ANY, wxString::FromUTF8("ä¸“æ³¨ç»Ÿè®¡"), wxDefaultPosition, wxSize(600, 400));
+    wxPanel* panel = new wxPanel(&dlg);
+    wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
+
+    // è®¡ç®—ç»Ÿè®¡æ•°æ®
+    std::vector<int> dailyHours(7, 0);  // æœ€è¿‘7å¤©
+    std::vector<int> monthlyHours(30, 0);  // æœ€è¿‘30å¤©
+
+    int64_t weekSec = 0, monthSec = 0;
+    auto today_start = now - hours(now.time_since_epoch().count() % (24*3600));
+
+    for (const auto& record : focusRecords) {
+        auto secs = record.durationSec;
+        auto days_ago = duration_cast<hours>(now - record.startTime).count() / 24;
+
+        if (days_ago < 7) {
+            dailyHours[days_ago] += secs / 3600;
+            weekSec += secs;
+        }
+        if (days_ago < 30) {
+            monthlyHours[days_ago] += secs / 3600;
+            monthSec += secs;
+        }
+    }
+
+    // åˆ›å»ºå›¾è¡¨é¢æ¿
+    wxPanel* chartPanel = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxSize(550, 200));
+    chartPanel->SetBackgroundColour(*wxWHITE);
+
+    // ç»˜åˆ¶å›¾è¡¨
+    chartPanel->Bind(wxEVT_PAINT, [chartPanel, dailyHours](wxPaintEvent& evt) {
+        wxPaintDC dc(chartPanel);
+        wxSize size = dc.GetSize();
+
+        // è®¾ç½®èƒŒæ™¯è‰²
+        dc.SetBackground(*wxWHITE_BRUSH);
+        dc.Clear();
+
+        // è®¾ç½®åæ ‡è½´é¢œè‰²
+        dc.SetPen(*wxBLACK_PEN);
+
+        // ç»˜åˆ¶åæ ‡è½´
+        int margin = 40;
+        int chartWidth = size.GetWidth() - 2 * margin;
+        int chartHeight = size.GetHeight() - 2 * margin;
+
+        // ç»˜åˆ¶Xè½´å’ŒYè½´
+        dc.DrawLine(margin, size.GetHeight() - margin,
+                   size.GetWidth() - margin, size.GetHeight() - margin);
+        dc.DrawLine(margin, margin, margin, size.GetHeight() - margin);
+
+        // ç»˜åˆ¶æŸ±çŠ¶å›¾
+        int barWidth = chartWidth / 7;
+        int maxHours = 24;
+
+        for (int i = 0; i < 7; i++) {
+            int x = margin + i * barWidth;
+            int barHeight = (dailyHours[i] * chartHeight) / maxHours;
+            int y = size.GetHeight() - margin - barHeight;
+
+            // è®¾ç½®æŸ±çŠ¶å›¾é¢œè‰²
+            dc.SetBrush(*wxBLUE_BRUSH);
+            dc.DrawRectangle(x, y, barWidth - 10, barHeight);
+
+            // ç»˜åˆ¶æ—¥æœŸæ ‡ç­¾
+            wxString day;
+            switch(i) {
+                case 0: day = "Mon"; break;
+                case 1: day = "Tue"; break;
+                case 2: day = "Wed"; break;
+                case 3: day = "Thu"; break;
+                case 4: day = "Fri"; break;
+                case 5: day = "Sat"; break;
+                case 6: day = "Sun"; break;
+            }
+            dc.DrawText(day, x + (barWidth - 10) / 2 - 15, size.GetHeight() - margin + 5);
+        }
+
+        // ç»˜åˆ¶Yè½´åˆ»åº¦
+        for (int i = 0; i <= maxHours; i += 4) {
+            int y = size.GetHeight() - margin - (i * chartHeight) / maxHours;
+            dc.DrawLine(margin - 5, y, margin, y);
+            dc.DrawText(wxString::Format("%d", i), margin - 35, y - 10);
+        }
+    });
+
+    // æ·»åŠ ç»Ÿè®¡æ–‡æœ¬
+    double weekH = weekSec / 3600.0, monthH = monthSec / 3600.0;
     wxString stats = wxString::Format(
-        "±¾ÖÜ×¨×¢Ê±³¤£º%.1fĞ¡Ê±\n±¾ÔÂÀÛ¼Æ£º%.1fĞ¡Ê±",
-        12.5,  // Ê¾ÀıÊı¾İ£¬¿ÉÌæ»»ÎªÊµ¼ÊÍ³¼ÆÂß¼­
-        48.3
+        wxString::FromUTF8("æœ¬å‘¨ä¸“æ³¨æ—¶é—´: %.1f å°æ—¶\næœ¬æœˆä¸“æ³¨æ—¶é—´: %.1f å°æ—¶"),
+        weekH, monthH
     );
-    wxMessageBox(stats, "×¨×¢Í³¼Æ", wxOK | wxICON_INFORMATION);
+    wxStaticText* statsText = new wxStaticText(panel, wxID_ANY, stats);
+    statsText->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+
+    // å¸ƒå±€
+    mainSizer->Add(statsText, 0, wxALL | wxALIGN_CENTER, 20);
+    mainSizer->Add(chartPanel, 1, wxEXPAND | wxALL, 10);
+
+    wxButton* btnClose = new wxButton(panel, wxID_OK, wxString::FromUTF8("å…³é—­"));
+    mainSizer->Add(btnClose, 0, wxALIGN_CENTER | wxALL, 10);
+
+    panel->SetSizer(mainSizer);
+    dlg.ShowModal();
 }
 
 void MainFrame::ApplyNordLightTheme() {
     ThemeConfig theme;
-    // ±±¼«¹âÅäÉ«
-    theme.mainBg = theme.snow_storm[2];   // nord6
-    theme.cardBg = theme.snow_storm[1];   // nord5
+    theme.mainBg = theme.snow_storm[2];  // nord6
+    theme.cardBg = theme.snow_storm[1];  // nord5
+    theme.primary = theme.frost[1];      // nord8
     theme.textPrimary = theme.polar_night[0]; // nord0
-    theme.timeFont = wxFont(24, wxFONTFAMILY_SWISS,
-                          wxFONTSTYLE_NORMAL,
-                          wxFONTWEIGHT_BOLD);
+    theme.textSecondary = theme.polar_night[1]; // nord1
 
     ThemeManager::Get().SetTheme(theme);
-    OnThemeChanged();
+    m_toolbar->SetBackgroundColour(theme.mainBg);
+    m_toolbar->Refresh();
 }
 
 void MainFrame::ApplyNordDarkTheme() {
     ThemeConfig theme;
-    // ¼«Ò¹ÅäÉ«
     theme.mainBg = theme.polar_night[0];  // nord0
     theme.cardBg = theme.polar_night[1];  // nord1
-    theme.textPrimary = theme.snow_storm[0]; // nord4
-    theme.timeFont = wxFont(36, wxFONTFAMILY_SWISS,
-                          wxFONTSTYLE_ITALIC,
-                          wxFONTWEIGHT_BOLD);
+    theme.primary = theme.frost[1];       // nord8
+    theme.textPrimary = theme.snow_storm[2]; // nord6
+    theme.textSecondary = theme.snow_storm[1]; // nord5
 
     ThemeManager::Get().SetTheme(theme);
-    OnThemeChanged();
+    m_toolbar->SetBackgroundColour(theme.mainBg);
+    m_toolbar->Refresh();
 }
 
-
-
 void MainFrame::SwitchAnimation(const std::string& animType) {
-    // Í£Ö¹µ±Ç°¶¯»­
+    // åœæ­¢å½“å‰åŠ¨ç”»
     if(currentAnim) {
         currentAnim->Stop();
         currentAnim->Hide();
+        currentAnim = nullptr;
     }
 
-    // Æô¶¯ĞÂ¶¯»­
-    if(animMap.find(animType) != animMap.end()) {
-        currentAnim = animMap[animType];
+    // å¯åŠ¨æ–°åŠ¨ç”»
+    auto it = animMap.find(animType);
+    if(it != animMap.end()) {
+        currentAnim = it->second;
         currentAnim->SetSize(animPanel->GetClientSize());
         currentAnim->Show();
         currentAnim->Start();
+
+        // æ›´æ–°å¸ƒå±€
         animPanel->Layout();
+        rightPanel->Layout();
     }
 }
 
@@ -571,6 +782,12 @@ void MainFrame::OnClose(wxCloseEvent& event){
     for(auto btn : soundButtons){
         if(btn->GetValue()) btn->ToggleSound();
     }
+    event.Skip();
+}
+
+void MainFrame::OnPaint(wxPaintEvent& event)
+{
+    wxPaintDC dc(this);
     event.Skip();
 }
 

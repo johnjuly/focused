@@ -5,6 +5,7 @@
 #include <wx/tglbtn.h>
 #include <SFML/Audio.hpp>
 #include<string>
+#include "StyleConfig.h"
 
 class SoundButton : public wxToggleButton {
 public:
@@ -12,14 +13,15 @@ public:
                 const wxString& label,
                 const std::string& filePath);
 
-    void ToggleSound();// ÇÐ»»²¥·Å/Í£Ö¹
+    void ToggleSound();// ï¿½Ð»ï¿½ï¿½ï¿½ï¿½ï¿½/Í£Ö¹
     void SetVolume(float volume);
+    void UpdateTheme();
 
 private:
-    bool LoadAudio(const std::string& path);// ¼ÓÔØÒôÆµÎÄ¼þ
+    bool LoadAudio(const std::string& path);// ÆµÄ¼
 
     sf::SoundBuffer buffer;
-    sf::Sound sound;// SFMLÒôÆµ²¥·ÅÆ÷
+    sf::Sound sound;// SFMLï¿½ï¿½Æµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     bool isLoaded = false;
 };
 

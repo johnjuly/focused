@@ -3120,12 +3120,12 @@
 	"wx/button.h"
 	"wx/fontdata.h"
 
-1745154456 source:c:\users\petto\desktop\focused\main.cpp
+1745251146 source:c:\users\petto\desktop\focused\main.cpp
 	"MainFrame.h"
 	<wx/wx.h>
 	<wx/image.h>
 
-1745160302 c:\users\petto\desktop\focused\include\mainframe.h
+1745506116 c:\users\petto\desktop\focused\include\mainframe.h
 	<wx/wx.h>
 	<vector>
 	<wx/timer.h>
@@ -3134,30 +3134,36 @@
 	"SoundButton.h"
 	"AnimationBase.h"
 	<unordered_map>
+	<chrono>
+	<wx/frame.h>
+	<wx/toolbar.h>
+	<wx/bitmap.h>
 
-1745155437 c:\users\petto\desktop\focused\include\styleconfig.h
+1745333308 c:\users\petto\desktop\focused\include\styleconfig.h
 	<wx/colour.h>
 	<wx/font.h>
 	<map>
 	<string>
 
-1745154456 c:\users\petto\desktop\focused\include\soundbutton.h
+1745505271 c:\users\petto\desktop\focused\include\soundbutton.h
 	<wx/tglbtn.h>
 	<SFML/Audio.hpp>
 	<string>
+	"StyleConfig.h"
 
-1745162460 c:\users\petto\desktop\focused\include\rainanimation.h
-	<wx/wx.h>
-	<wx/timer.h>
-	<vector>
-	<random>
+1745503397 c:\users\petto\desktop\focused\include\rainanimation.h
 	"AnimationBase.h"
+	<random>
+	<vector>
 
-1745161924 source:c:\users\petto\desktop\focused\src\mainframe.cpp
+1745513986 source:c:\users\petto\desktop\focused\src\mainframe.cpp
 	"MainFrame.h"
 	"RainAnimation.h"
 	"GlacierAnimation.h"
 	"FireAnimation.h"
+	"WindAnimation.h"
+	"OceanAnimation.h"
+	"CafeAnimation.h"
 	<wx/clrpicker.h>
 	"SoundButton.h"
 	<wx/fontpicker.h>
@@ -3166,37 +3172,122 @@
 	<wx/spinctrl.h>
 	<wx/colordlg.h>
 	<wx/fontdlg.h>
+	<fstream>
+	<sstream>
+	<iomanip>
 
-1745164499 source:c:\users\petto\desktop\focused\src\rainanimation.cpp
-	"Rainanimation.h"
-	<wx/dcbuffer.h>
+1745503395 source:c:\users\petto\desktop\focused\src\rainanimation.cpp
 	"RainAnimation.h"
+	<wx/dcbuffer.h>
 
-1745154457 source:c:\users\petto\desktop\focused\src\soundbutton.cpp
+1745505824 source:c:\users\petto\desktop\focused\src\soundbutton.cpp
 	<SFML/Audio.hpp>
 	"SoundButton.h"
 	<wx/log.h>
 
-1745162462 c:\users\petto\desktop\focused\include\animationbase.h
+1745505116 c:\users\petto\desktop\focused\include\animationbase.h
 	<wx/wx.h>
+	<wx/timer.h>
+	"StyleConfig.h"
 
-1745159595 source:c:\users\petto\desktop\focused\src\glacieranimation.cpp
+1745509752 source:c:\users\petto\desktop\focused\src\glacieranimation.cpp
 	"GlacierAnimation.h"
 	<wx/dcbuffer.h>
-
-1745162462 c:\users\petto\desktop\focused\include\glacieranimation.h
 	<random>
-	"AnimationBase.h"
+	<algorithm>
 
-1745161661 source:c:\users\petto\desktop\focused\src\fireanimation.cpp
+1745515193 c:\users\petto\desktop\focused\include\glacieranimation.h
+	"AnimationBase.h"
+	<wx/timer.h>
+	<vector>
+	<random>
+	<wx/dcbuffer.h>
+
+1745502815 source:c:\users\petto\desktop\focused\src\fireanimation.cpp
 	"FireAnimation.h"
 	<wx/dcbuffer.h>
 	<random>
+	<algorithm>
 
-1745162462 c:\users\petto\desktop\focused\include\fireanimation.h
-	<vector>
+1745502658 c:\users\petto\desktop\focused\include\fireanimation.h
 	"AnimationBase.h"
+	<wx/dcbuffer.h>
+	<vector>
+
+1725363804 c:\wxwidgets\\include\wx\textfile.h
+	"wx/defs.h"
+	"wx/textbuf.h"
+	"wx/file.h"
+
+1725363804 c:\wxwidgets\\include\wx\textbuf.h
+	"wx/defs.h"
+	"wx/arrstr.h"
+	"wx/convauto.h"
+	"wx/string.h"
+	"wx/dynarray.h"
+
+1745502449 source:c:\users\petto\desktop\focused\src\statisticsdialog.cpp
+	"StatisticsDialog.h"
+	<wx/dcbuffer.h>
+	<algorithm>
+	<iomanip>
+	<sstream>
+
+1745502472 c:\users\petto\desktop\focused\include\statisticsdialog.h
+	<wx/wx.h>
+	<wx/dialog.h>
+	<vector>
+	<chrono>
+
+1745514505 source:c:\users\petto\desktop\focused\src\waveanimation.cpp
+	"WaveAnimation.h"
+	<wx/dcbuffer.h>
+	<cmath>
+
+1745514479 c:\users\petto\desktop\focused\include\waveanimation.h
+	"AnimationBase.h"
+	<wx/timer.h>
+
+1745514387 source:c:\users\petto\desktop\focused\src\cafeanimation.cpp
+	"CafeAnimation.h"
+	<wx/dcbuffer.h>
+
+1745514367 c:\users\petto\desktop\focused\include\cafeanimation.h
+	"AnimationBase.h"
+	<wx/timer.h>
+	<vector>
+	<random>
+
+1745503727 source:c:\users\petto\desktop\focused\src\forestanimation.cpp
+	"ForestAnimation.h"
+	<wx/dcbuffer.h>
+
+1745503540 c:\users\petto\desktop\focused\include\forestanimation.h
 	<wx/wx.h>
 	<wx/timer.h>
+	<vector>
+	<random>
+	"AnimationBase.h"
+
+1745507085 c:\users\petto\desktop\focused\include\oceananimation.h
+	"AnimationBase.h"
+	<wx/dcbuffer.h>
+	<vector>
+	<random>
+
+1745509774 source:c:\users\petto\desktop\focused\src\oceananimation.cpp
+	"OceanAnimation.h"
+	<random>
+	<algorithm>
+
+1745514440 source:c:\users\petto\desktop\focused\src\windanimation.cpp
+	"WindAnimation.h"
+	<wx/dcbuffer.h>
+	<cmath>
+
+1745514408 c:\users\petto\desktop\focused\include\windanimation.h
+	"AnimationBase.h"
+	<wx/timer.h>
+	<vector>
 	<random>
 

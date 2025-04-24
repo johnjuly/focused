@@ -1,42 +1,35 @@
-#include "Rainanimation.h"
-#include <wx/dcbuffer.h>
-
 #include "RainAnimation.h"
-
-
+#include <wx/dcbuffer.h>
 
 RainAnimation::RainAnimation(wxWindow* parent)
     : AnimationBase(parent)
-    , m_timer(this)
-    , m_rng(std::mt19937(std::random_device{}()))
+    , m_rng(std::random_device{}())
 {
-    SetBackgroundStyle(wxBG_STYLE_PAINT);
-    Bind(wxEVT_PAINT,  &RainAnimation::OnPaint, this);
-    Bind(wxEVT_TIMER,  &RainAnimation::OnTimer, this);
+    Bind(wxEVT_PAINT, &RainAnimation::OnPaint, this);
+    timer.Bind(wxEVT_TIMER, &RainAnimation::OnTimer, this);
 }
 
 void RainAnimation::Start() {
     m_isActive = true;
-    m_timer.Start(30); // 约33fps
+    timer.Start(30);
 }
 
 void RainAnimation::Stop() {
-    m_timer.Stop();
+    timer.Stop();
     m_isActive = false;
     Refresh();
 }
 
 void RainAnimation::UpdateDrops() {
     wxSize size = GetClientSize();
-
-    // 移除超出屏幕的雨滴
+    
     m_drops.erase(std::remove_if(m_drops.begin(), m_drops.end(),
         [&](const auto& drop) { return drop.y > size.y; }),
         m_drops.end());
 
-    // 生成新雨滴
     std::uniform_int_distribution<int> distX(0, size.x);
     std::uniform_int_distribution<int> distSpeed(10, 20);
+    
     if(m_isActive && m_drops.size() < 50) {
         m_drops.push_back({
             distX(m_rng),
@@ -45,7 +38,6 @@ void RainAnimation::UpdateDrops() {
         });
     }
 
-    // 更新位置
     for(auto& drop : m_drops) {
         drop.y += drop.speed;
     }
@@ -53,14 +45,16 @@ void RainAnimation::UpdateDrops() {
 
 void RainAnimation::OnPaint(wxPaintEvent&) {
     wxAutoBufferedPaintDC dc(this);
+    
+    // Draw background using theme color
+    const auto& theme = ThemeManager::Get().GetCurrentTheme();
+    dc.SetBackground(wxBrush(theme.mainBg));
     dc.Clear();
 
     if(!m_isActive) return;
 
-    /* wxSize areaSize = GetClientSize();*/
-
-
-    wxPen pen(wxColour(100, 181, 246), 2); // 蓝色粗线条
+    // Draw rain drops with theme-appropriate color
+    wxPen pen(theme.frost[2], 2); // Use frost[2] color for rain drops
     dc.SetPen(pen);
 
     for(const auto& drop : m_drops) {
