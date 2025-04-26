@@ -38,10 +38,7 @@ MainFrame::MainFrame()
     // 统计记录
     Bind(wxEVT_TOOL, &MainFrame::OnShowStatistics, this, 2001);
 
-    // 自定义主题记录
-    Bind(wxEVT_TOOL, [=](wxCommandEvent&) {
-        ApplyNordDarkTheme();
-    }, ID_THEME_CUSTOM);
+
 }
 
 

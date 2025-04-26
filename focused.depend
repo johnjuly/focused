@@ -3190,11 +3190,10 @@
 	<wx/timer.h>
 	"StyleConfig.h"
 
-1745509752 source:c:\users\petto\desktop\focused\src\glacieranimation.cpp
+1745515083 source:c:\users\petto\desktop\focused\src\glacieranimation.cpp
 	"GlacierAnimation.h"
 	<wx/dcbuffer.h>
-	<random>
-	<algorithm>
+	<cmath>
 
 1745515193 c:\users\petto\desktop\focused\include\glacieranimation.h
 	"AnimationBase.h"
@@ -3239,10 +3238,11 @@
 	<vector>
 	<chrono>
 
-1745514505 source:c:\users\petto\desktop\focused\src\waveanimation.cpp
+1745597105 source:c:\users\petto\desktop\focused\src\waveanimation.cpp
 	"WaveAnimation.h"
 	<wx/dcbuffer.h>
 	<cmath>
+	<wx/graphics.h>
 
 1745514479 c:\users\petto\desktop\focused\include\waveanimation.h
 	"AnimationBase.h"
