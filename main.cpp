@@ -13,6 +13,7 @@ public:
         frame->Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnClose,frame);
         frame->SetIcon(icon);
         frame->Show();
+         wxInitAllImageHandlers();
         return true;
     }
 };

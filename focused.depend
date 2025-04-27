@@ -3120,12 +3120,12 @@
 	"wx/button.h"
 	"wx/fontdata.h"
 
-1745251146 source:c:\users\petto\desktop\focused\main.cpp
+1745759194 source:c:\users\petto\desktop\focused\main.cpp
 	"MainFrame.h"
 	<wx/wx.h>
 	<wx/image.h>
 
-1745506116 c:\users\petto\desktop\focused\include\mainframe.h
+1745640142 c:\users\petto\desktop\focused\include\mainframe.h
 	<wx/wx.h>
 	<vector>
 	<wx/timer.h>
@@ -3156,7 +3156,7 @@
 	<random>
 	<vector>
 
-1745513986 source:c:\users\petto\desktop\focused\src\mainframe.cpp
+1745759976 source:c:\users\petto\desktop\focused\src\mainframe.cpp
 	"MainFrame.h"
 	"RainAnimation.h"
 	"GlacierAnimation.h"
@@ -3175,6 +3175,13 @@
 	<fstream>
 	<sstream>
 	<iomanip>
+	<wx/statbmp.h>
+	<wx/gauge.h>
+	<wx/sound.h>
+	<wx/image.h>
+	<wx/file.h>
+	<cmath>
+	<cmath>
 
 1745503395 source:c:\users\petto\desktop\focused\src\rainanimation.cpp
 	"RainAnimation.h"
@@ -3290,4 +3297,20 @@
 	<wx/timer.h>
 	<vector>
 	<random>
+
+1725363804 c:\wxwidgets\\include\wx\sound.h
+	"wx/defs.h"
+	"wx/object.h"
+	"wx/msw/sound.h"
+	"wx/osx/sound.h"
+	"wx/unix/sound.h"
+
+1725363804 c:\wxwidgets\\include\wx\msw\sound.h
+
+1725363804 c:\wxwidgets\\include\wx\osx\sound.h
+	"wx/object.h"
+
+1725363804 c:\wxwidgets\\include\wx\unix\sound.h
+	"wx/defs.h"
+	"wx/object.h"
 

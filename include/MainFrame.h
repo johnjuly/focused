@@ -83,6 +83,12 @@ private:
     void SwitchAnimation(const std::string& animType);
     void SetColorRecursive(wxWindow* window, wxColour color);
     void OnShowStatistics(wxCommandEvent& event);
+    wxPanel* CreateAchievementCard(wxWindow* parent,
+                                        const wxString& title,
+                                        const wxString& format,
+                                        double hours,
+                                        double value,
+                                        const wxString& iconPath);
 
     void ApplyNordLightTheme();
     void ApplyNordDarkTheme();

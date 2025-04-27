@@ -18,6 +18,13 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <wx/statbmp.h>   // 新增
+#include <wx/gauge.h>     // 新增
+#include <wx/sound.h>     // 可选
+#include <wx/image.h>     // 可选
+#include <wx/file.h>      // 可选
+#include <cmath>          // 新增
+#include <cmath>          // 新增
 
 
 
@@ -31,6 +38,7 @@ MainFrame::MainFrame()
     this->Bind(wxEVT_TIMER, &MainFrame::OnTimerTick, this);
     InitUI();
     LoadRecords();
+     wxImage::AddHandler(new wxPNGHandler);
 
     // 退出记录
     Bind(wxEVT_TOOL, [=](wxCommandEvent&) { Close(true); }, wxID_EXIT);
@@ -616,25 +624,20 @@ void MainFrame::RecordSession() {
 
 
 
+
 void MainFrame::OnShowStatistics(wxCommandEvent&) {
     using namespace std::chrono;
     auto now = system_clock::now();
+    int64_t totalSec = 0;
 
-    // 创建统计对话框
-    wxDialog dlg(this, wxID_ANY, wxString::FromUTF8("专注统计"), wxDefaultPosition, wxSize(600, 400));
-    wxPanel* panel = new wxPanel(&dlg);
-    wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
-
-    // 计算统计数据
-    std::vector<int> dailyHours(7, 0);  // 最近7天
-    std::vector<int> monthlyHours(30, 0);  // 最近30天
-
+    std::vector<int> dailyHours(7, 0);
+    std::vector<int> monthlyHours(30, 0);
     int64_t weekSec = 0, monthSec = 0;
-    auto today_start = now - hours(now.time_since_epoch().count() % (24*3600));
 
     for (const auto& record : focusRecords) {
         auto secs = record.durationSec;
         auto days_ago = duration_cast<hours>(now - record.startTime).count() / 24;
+        totalSec += secs;
 
         if (days_ago < 7) {
             dailyHours[days_ago] += secs / 3600;
@@ -646,86 +649,97 @@ void MainFrame::OnShowStatistics(wxCommandEvent&) {
         }
     }
 
-    // 创建图表面板
-    wxPanel* chartPanel = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxSize(550, 200));
-    chartPanel->SetBackgroundColour(*wxWHITE);
+    double totalHours = totalSec / 3600.0;
 
-    // 绘制图表
-    chartPanel->Bind(wxEVT_PAINT, [chartPanel, dailyHours](wxPaintEvent& evt) {
-        wxPaintDC dc(chartPanel);
-        wxSize size = dc.GetSize();
+    // 创建对话框并设置字体
+    wxDialog dlg(this, wxID_ANY, wxString::FromUTF8("专注成就"), wxDefaultPosition, wxSize(600, 700));
+    wxFont font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("微软雅黑"));
+    dlg.SetFont(font);
 
-        // 设置背景色
-        dc.SetBackground(*wxWHITE_BRUSH);
-        dc.Clear();
+    wxPanel* panel = new wxPanel(&dlg);
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
-        // 设置坐标轴颜色
-        dc.SetPen(*wxBLACK_PEN);
-
-        // 绘制坐标轴
-        int margin = 40;
-        int chartWidth = size.GetWidth() - 2 * margin;
-        int chartHeight = size.GetHeight() - 2 * margin;
-
-        // 绘制X轴和Y轴
-        dc.DrawLine(margin, size.GetHeight() - margin,
-                   size.GetWidth() - margin, size.GetHeight() - margin);
-        dc.DrawLine(margin, margin, margin, size.GetHeight() - margin);
-
-        // 绘制柱状图
-        int barWidth = chartWidth / 7;
-        int maxHours = 24;
-
-        for (int i = 0; i < 7; i++) {
-            int x = margin + i * barWidth;
-            int barHeight = (dailyHours[i] * chartHeight) / maxHours;
-            int y = size.GetHeight() - margin - barHeight;
-
-            // 设置柱状图颜色
-            dc.SetBrush(*wxBLUE_BRUSH);
-            dc.DrawRectangle(x, y, barWidth - 10, barHeight);
-
-            // 绘制日期标签
-            wxString day;
-            switch(i) {
-                case 0: day = "Mon"; break;
-                case 1: day = "Tue"; break;
-                case 2: day = "Wed"; break;
-                case 3: day = "Thu"; break;
-                case 4: day = "Fri"; break;
-                case 5: day = "Sat"; break;
-                case 6: day = "Sun"; break;
-            }
-            dc.DrawText(day, x + (barWidth - 10) / 2 - 15, size.GetHeight() - margin + 5);
-        }
-
-        // 绘制Y轴刻度
-        for (int i = 0; i <= maxHours; i += 4) {
-            int y = size.GetHeight() - margin - (i * chartHeight) / maxHours;
-            dc.DrawLine(margin - 5, y, margin, y);
-            dc.DrawText(wxString::Format("%d", i), margin - 35, y - 10);
-        }
-    });
-
-    // 添加统计文本
-    double weekH = weekSec / 3600.0, monthH = monthSec / 3600.0;
-    wxString stats = wxString::Format(
-        wxString::FromUTF8("本周专注时间: %.1f 小时\n本月专注时间: %.1f 小时"),
-        weekH, monthH
+    // 创建卡片（示例：环保成就卡）
+    wxPanel* ecoCard = CreateAchievementCard(
+        panel,
+         wxString::FromUTF8("🌱s森林贡献者"),
+        wxString::FromUTF8("专注时间: %.1f 小时\n相当于树苗长高了 %.1f 米！"),
+        totalHours,
+        totalHours * 0.1,
+        "./tree.png"
     );
-    wxStaticText* statsText = new wxStaticText(panel, wxID_ANY, stats);
-    statsText->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+    sizer->Add(ecoCard, 0, wxEXPAND | wxALL, 10);
 
-    // 布局
-    mainSizer->Add(statsText, 0, wxALL | wxALIGN_CENTER, 20);
-    mainSizer->Add(chartPanel, 1, wxEXPAND | wxALL, 10);
+   // --- 卡片2：能量燃烧 ---
+    wxPanel* energyCard = CreateAchievementCard(
+        panel,
+        wxString::FromUTF8("🔥 热量战士"),
+        wxString::FromUTF8("已专注：%.1f 小时，可吃蛋糕：%.1f 块"),
+        totalHours,
+        totalHours * 1,  // 1小时=1块蛋糕
+        "./cake.png"
+    );
+    sizer->Add(energyCard, 0, wxEXPAND | wxALL, 10);
 
-    wxButton* btnClose = new wxButton(panel, wxID_OK, wxString::FromUTF8("关闭"));
-    mainSizer->Add(btnClose, 0, wxALIGN_CENTER | wxALL, 10);
+    // --- 卡片3：知识积累 ---
+    wxPanel* bookCard = CreateAchievementCard(
+        panel,
+        wxString::FromUTF8("📖 知识探险家"),
+        wxString::FromUTF8("专注时间: %.1f 小时\n相当于读完了 %.0f 章书！"),
+        totalHours,
+        totalHours * 1,  // 1小时=1章节
+        "./book.png"
+    );
+    sizer->Add(bookCard, 0, wxEXPAND | wxALL, 10);
 
-    panel->SetSizer(mainSizer);
+    panel->SetSizer(sizer);
     dlg.ShowModal();
 }
+
+
+
+
+
+// 通用卡片创建函数
+wxPanel* MainFrame::CreateAchievementCard(wxWindow* parent,
+                                        const wxString& title,
+                                        const wxString& format,
+                                        double hours,
+                                        double value,
+                                        const wxString& iconPath) {
+    wxPanel* card = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(500, 220));
+    card->SetBackgroundColour(wxColour(240, 245, 240)); // 浅绿色背景
+
+    wxBoxSizer* hSizer = new wxBoxSizer(wxHORIZONTAL);
+
+
+    wxBitmap bmp;
+    if ( !bmp.LoadFile(iconPath, wxBITMAP_TYPE_PNG) ) {
+        // 加载失败时可以换一个默认图，或者记录日志
+        wxLogError("无法加载图标文件：%s", iconPath);
+        // 用一个 1×1 的空白图顶一下，防止后面断言
+        bmp = wxBitmap(1,1);
+    }
+    wxStaticBitmap* icon = new wxStaticBitmap(card, wxID_ANY, bmp);
+    hSizer->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 10);
+
+     // 右侧文本
+    wxBoxSizer* vSizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticText* titleText = new wxStaticText(card, wxID_ANY, title);
+    titleText->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+    vSizer->Add(titleText, 0, wxTOP | wxLEFT, 10);
+
+    wxString desc = wxString::Format(format, hours, value);
+    wxStaticText* descText = new wxStaticText(card, wxID_ANY, desc);
+    descText->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC,wxFONTWEIGHT_NORMAL));
+    vSizer->Add(descText, 0, wxLEFT | wxBOTTOM, 10);
+
+    hSizer->Add(vSizer, 1, wxEXPAND);
+    card->SetSizer(hSizer);
+
+    return card;
+}
+
 
 void MainFrame::ApplyNordLightTheme() {
     ThemeConfig theme;
