@@ -11,11 +11,11 @@ SoundButton::SoundButton(wxWindow* parent,
         wxLogError("音频加载失败：%s", filePath);
         Disable();
     }
-    
-    // Set initial theme
+
+
     UpdateTheme();
-    
-    // Register for theme updates
+
+
     ThemeManager::Get().RegisterCallback([this]() {
         UpdateTheme();
     });
@@ -45,15 +45,15 @@ void SoundButton::SetVolume(float volume){
 
 void SoundButton::UpdateTheme() {
     const auto& theme = ThemeManager::Get().GetCurrentTheme();
-    
-    // Set background color
+
+
     SetBackgroundColour(GetValue() ? theme.primary : theme.cardBg);
-    
-    // Set text color
+
+
     SetForegroundColour(theme.textPrimary);
-    
-    // Set font
+
+
     SetFont(theme.titleFont);
-    
+
     Refresh();
 }

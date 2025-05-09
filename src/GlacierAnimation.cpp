@@ -21,34 +21,6 @@ void GlacierAnimation::Stop() {
     Refresh();
 }
 
-void GlacierAnimation::DrawSnowflake(wxDC& dc, wxPoint center, int size) {
-    wxColour iceColor(200, 225, 255); // 冰蓝色
-    dc.SetPen(wxPen(iceColor, 1));
-
-    const int branches = 6;
-    const float angleStep = 2 * M_PI / branches;
-
-    for(int i = 0; i < branches; ++i) {
-        float angle = angleStep * i;
-
-        // 主分支
-        wxPoint end(
-            center.x + size * cos(angle),
-            center.y + size * sin(angle)
-        );
-        dc.DrawLine(center, end);
-
-        // 次级分支
-        for(int j = 1; j <= 2; ++j) {
-            float subAngle = angle + angleStep/3 * j;
-            wxPoint subEnd(
-                end.x + size/2 * cos(subAngle),
-                end.y + size/2 * sin(subAngle)
-            );
-            dc.DrawLine(end, subEnd);
-        }
-    }
-}
 
 void GlacierAnimation::OnPaint(wxPaintEvent&) {
     wxAutoBufferedPaintDC dc(this);
@@ -64,11 +36,11 @@ void GlacierAnimation::OnPaint(wxPaintEvent&) {
 }
 
 void GlacierAnimation::DrawSnowflake(wxDC& dc, wxPoint center, int size, float angle) {
-    wxColour iceColor(200, 225, 255);
+    wxColour iceColor(200, 225, 255);// 冰蓝色
     dc.SetPen(wxPen(iceColor, 1));
 
     const int branches = 6;
-    const float angleStep = 2 * M_PI / branches;
+    const float angleStep = 2 * M_PI / branches;// 分支间角度间隔
 
     for(int i = 0; i < branches; ++i) {
         float branchAngle = angleStep * i + angle;
@@ -80,7 +52,7 @@ void GlacierAnimation::DrawSnowflake(wxDC& dc, wxPoint center, int size, float a
         );
         dc.DrawLine(center, end);
 
-        // 次级分支
+        // 2个次级分支
         for(int j = 1; j <= 2; ++j) {
             float subAngle = branchAngle + angleStep/3 * j;
             wxPoint subEnd(

@@ -7,7 +7,7 @@
 FireAnimation::FireAnimation(wxWindow* parent)
     : AnimationBase(parent), frameCount(0) {
     InitializeParticles();
-    
+
     Bind(wxEVT_PAINT, &FireAnimation::OnPaint, this);
     timer.Bind(wxEVT_TIMER, &FireAnimation::OnTimer, this);
 }
@@ -15,11 +15,11 @@ FireAnimation::FireAnimation(wxWindow* parent)
 void FireAnimation::InitializeParticles() {
     wxSize size = GetClientSize();
     std::random_device rd;
-    std::mt19937 gen(rd());
+    std::mt19937 gen(rd());// 随机数分布
     std::uniform_int_distribution<> disX(0, size.GetWidth());
-    std::uniform_int_distribution<> disLife(30, 60);
-    std::uniform_int_distribution<> disVelX(-2, 2);
-    std::uniform_int_distribution<> disVelY(-4, -1);
+    std::uniform_int_distribution<> disLife(30, 60);// 生命周期30-60帧
+    std::uniform_int_distribution<> disVelX(-2, 2);// 横向速度范围
+    std::uniform_int_distribution<> disVelY(-4, -1);// 纵向速度，负数为向上
 
     particles.clear();
     for (int i = 0; i < 100; i++) {
@@ -27,7 +27,7 @@ void FireAnimation::InitializeParticles() {
         particle.position = wxPoint(disX(gen), size.GetHeight() - 50);
         particle.velocity = wxPoint(disVelX(gen), disVelY(gen));
         particle.maxLife = disLife(gen);
-        particle.life = particle.maxLife;
+        particle.life = particle.maxLife;// 剩余生命从最大值开始
         particle.color = GetFireColor(particle.life, particle.maxLife);
         particles.push_back(particle);
     }
@@ -35,7 +35,7 @@ void FireAnimation::InitializeParticles() {
 
 wxColour FireAnimation::GetFireColor(int life, int maxLife) {
     float ratio = static_cast<float>(life) / maxLife;
-    
+
     if (ratio > 0.8f) {
         // 最热的火焰 - 白色到黄色
         int intensity = static_cast<int>(255 * (1.0f - (ratio - 0.8f) / 0.2f));
@@ -63,7 +63,7 @@ void FireAnimation::UpdateParticles() {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> disVelX(-2, 2);
-    std::uniform_int_distribution<> disVelY(-4, -1);
+    std::uniform_int_distribution<> disVelY(-3, -1);
     std::uniform_int_distribution<> disLife(30, 60);
 
     // 更新现有粒子
@@ -83,7 +83,7 @@ void FireAnimation::UpdateParticles() {
             particle.velocity.y += (rand() % 2) - 1;
             // 限制速度
             particle.velocity.x = std::clamp(particle.velocity.x, -3, 3);
-            particle.velocity.y = std::clamp(particle.velocity.y, -5, -1);
+            particle.velocity.y = std::clamp(particle.velocity.y, -3, -1);
         }
         particle.color = GetFireColor(particle.life, particle.maxLife);
     }
@@ -99,12 +99,12 @@ void FireAnimation::DrawParticle(wxDC& dc, const FireParticle& particle) {
 void FireAnimation::OnPaint(wxPaintEvent& event) {
     wxBufferedPaintDC dc(this);
     dc.Clear();
-    
+
     // 绘制背景
-    dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(wxColour(0, 0, 0)));
-    dc.DrawRectangle(GetClientRect());
-    
+
+    const auto& theme = ThemeManager::Get().GetCurrentTheme();
+    dc.SetBackground(wxBrush(theme.mainBg));
+
     // 绘制粒子
     for (const auto& particle : particles) {
         DrawParticle(dc, particle);
@@ -118,7 +118,7 @@ void FireAnimation::OnTimer(wxTimerEvent& event) {
 }
 
 void FireAnimation::Start() {
-    timer.Start(30); // 每30毫秒更新一次
+    timer.Start(50);
 }
 
 void FireAnimation::Stop() {

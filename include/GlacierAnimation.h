@@ -17,7 +17,6 @@ private:
     void OnPaint(wxPaintEvent& evt);
     void OnTimer(wxTimerEvent& evt);
 
-    void DrawSnowflake(wxDC& dc, wxPoint center, int size);
     void DrawSnowflake(wxDC& dc, wxPoint center, int size, float angle);
 
     struct Snowflake {

@@ -3151,12 +3151,12 @@
 	<string>
 	"StyleConfig.h"
 
-1745503397 c:\users\petto\desktop\focused\include\rainanimation.h
+1746345522 c:\users\petto\desktop\focused\include\rainanimation.h
 	"AnimationBase.h"
 	<random>
 	<vector>
 
-1745759976 source:c:\users\petto\desktop\focused\src\mainframe.cpp
+1746317845 source:c:\users\petto\desktop\focused\src\mainframe.cpp
 	"MainFrame.h"
 	"RainAnimation.h"
 	"GlacierAnimation.h"
@@ -3183,7 +3183,7 @@
 	<cmath>
 	<cmath>
 
-1745503395 source:c:\users\petto\desktop\focused\src\rainanimation.cpp
+1746317479 source:c:\users\petto\desktop\focused\src\rainanimation.cpp
 	"RainAnimation.h"
 	<wx/dcbuffer.h>
 
@@ -3202,14 +3202,14 @@
 	<wx/dcbuffer.h>
 	<cmath>
 
-1745515193 c:\users\petto\desktop\focused\include\glacieranimation.h
+1746346955 c:\users\petto\desktop\focused\include\glacieranimation.h
 	"AnimationBase.h"
 	<wx/timer.h>
 	<vector>
 	<random>
 	<wx/dcbuffer.h>
 
-1745502815 source:c:\users\petto\desktop\focused\src\fireanimation.cpp
+1745938849 source:c:\users\petto\desktop\focused\src\fireanimation.cpp
 	"FireAnimation.h"
 	<wx/dcbuffer.h>
 	<random>

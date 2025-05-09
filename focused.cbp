@@ -84,7 +84,6 @@
 		<Unit filename="include/OceanAnimation.h" />
 		<Unit filename="include/Rainanimation.h" />
 		<Unit filename="include/SoundButton.h" />
-		<Unit filename="include/StatisticsDialog.h" />
 		<Unit filename="include/StyleConfig.h" />
 		<Unit filename="include/WaveAnimation.h" />
 		<Unit filename="include/WindAnimation.h" />
@@ -97,7 +96,6 @@
 		<Unit filename="src/OceanAnimation.cpp" />
 		<Unit filename="src/Rainanimation.cpp" />
 		<Unit filename="src/SoundButton.cpp" />
-		<Unit filename="src/StatisticsDialog.cpp" />
 		<Unit filename="src/WaveAnimation.cpp" />
 		<Unit filename="src/WindAnimation.cpp" />
 		<Unit filename="waves.wav" />

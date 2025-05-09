@@ -22,7 +22,7 @@ private:
         int speed;
     };
 
-    std::vector<RainDrop> m_drops;
+    std::vector<RainDrop> m_drops;// ´æ´¢ËùÓĞÓêµÎÁ£×Ó
     std::mt19937 m_rng;
 };
 

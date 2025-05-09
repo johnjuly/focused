@@ -22,14 +22,14 @@ void RainAnimation::Stop() {
 
 void RainAnimation::UpdateDrops() {
     wxSize size = GetClientSize();
-    
+
     m_drops.erase(std::remove_if(m_drops.begin(), m_drops.end(),
         [&](const auto& drop) { return drop.y > size.y; }),
         m_drops.end());
 
     std::uniform_int_distribution<int> distX(0, size.x);
     std::uniform_int_distribution<int> distSpeed(10, 20);
-    
+
     if(m_isActive && m_drops.size() < 50) {
         m_drops.push_back({
             distX(m_rng),
@@ -45,16 +45,16 @@ void RainAnimation::UpdateDrops() {
 
 void RainAnimation::OnPaint(wxPaintEvent&) {
     wxAutoBufferedPaintDC dc(this);
-    
-    // Draw background using theme color
+
+
     const auto& theme = ThemeManager::Get().GetCurrentTheme();
     dc.SetBackground(wxBrush(theme.mainBg));
     dc.Clear();
 
     if(!m_isActive) return;
 
-    // Draw rain drops with theme-appropriate color
-    wxPen pen(theme.frost[2], 2); // Use frost[2] color for rain drops
+
+    wxPen pen(theme.frost[2], 2);
     dc.SetPen(pen);
 
     for(const auto& drop : m_drops) {

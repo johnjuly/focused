@@ -18,13 +18,13 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-#include <wx/statbmp.h>   // 新增
-#include <wx/gauge.h>     // 新增
-#include <wx/sound.h>     // 可选
-#include <wx/image.h>     // 可选
-#include <wx/file.h>      // 可选
-#include <cmath>          // 新增
-#include <cmath>          // 新增
+#include <wx/statbmp.h>
+#include <wx/gauge.h>
+#include <wx/sound.h>
+#include <wx/image.h>
+#include <wx/file.h>
+#include <cmath>
+#include <cmath>
 
 
 
@@ -659,10 +659,10 @@ void MainFrame::OnShowStatistics(wxCommandEvent&) {
     wxPanel* panel = new wxPanel(&dlg);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
-    // 创建卡片（示例：环保成就卡）
+    // 创建卡片（环保成就卡）
     wxPanel* ecoCard = CreateAchievementCard(
         panel,
-         wxString::FromUTF8("🌱s森林贡献者"),
+         wxString::FromUTF8("🌱Z森林贡献者"),
         wxString::FromUTF8("专注时间: %.1f 小时\n相当于树苗长高了 %.1f 米！"),
         totalHours,
         totalHours * 0.1,
