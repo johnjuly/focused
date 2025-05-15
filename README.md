@@ -1,6 +1,8 @@
 # focused
 
 文件结构
+
+```
 .
 ├── bin
 │   └── Debug
@@ -20,15 +22,15 @@
 ├── focused.png
 ├── icebergs.wav
 ├── include
-│   ├── AnimationBase.h
+│   ├── AnimationBase.h     # 所有动画的基类
 │   ├── CafeAnimation.h
 │   ├── FireAnimation.h
 │   ├── GlacierAnimation.h
-│   ├── MainFrame.h
+│   ├── MainFrame.h         # 主应用窗口类
 │   ├── OceanAnimation.h
 │   ├── Rainanimation.h
-│   ├── SoundButton.h
-│   ├── StatisticsDialog.h
+│   ├── SoundButton.h       # 音频控制UI组件
+│   ├── StatisticsDialog.h  # 统计数据显示对话框
 │   ├── StyleConfig.h
 │   ├── WaveAnimation.h
 │   └── WindAnimation.h
@@ -40,7 +42,7 @@
 │   ├── CafeAnimation.cpp
 │   ├── FireAnimation.cpp
 │   ├── GlacierAnimation.cpp
-│   ├── MainFrame.cpp
+│   ├── MainFrame.cpp       # 主窗口逻辑
 │   ├── OceanAnimation.cpp
 │   ├── Rainanimation.cpp
 │   ├── SoundButton.cpp
@@ -51,3 +53,4 @@
 ├── tree.png
 ├── waves.wav
 └── wind-in-forest.wav
+```
