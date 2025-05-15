@@ -4,21 +4,13 @@
 
 ```
 .
-├── bin
-│   └── Debug
-│   ├── focused.exe
-│   ├── openal32.dll
-│   ├── sfml-audio-2.dll
-│   └── sfml-system-2.dll
+
 ├── book.png
 ├── cafe.wav
 ├── cake.png
 ├── exit.png
 ├── fire.wav
 ├── focus_data.csv
-├── focused.cbp
-├── focused.depend
-├── focused.layout
 ├── focused.png
 ├── icebergs.wav
 ├── include
